@@ -1,3 +1,6 @@
+Au préalable installation de la bibliothèque libbison(pour par exemple l'option -ly) : sudo apt install libbison-dev
+https://packages.debian.org/buster/libbison-dev
+
 Compilation et éxécution avec Makefile : make expr2
 
 Compilation et éxécution à la main :
