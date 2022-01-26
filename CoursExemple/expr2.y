@@ -13,6 +13,7 @@ T: '(' E ')' | NUMBER;
 %%
 
 /* return la catégorie de la prochaine unité lexicale sous la forme d'un entier (int) >0 sinon 0 plus rien à lire */
+/*
 int yylex() {
 	int c;
 	// eat spaces
@@ -27,7 +28,7 @@ int yylex() {
 	} else {
 		return c;
 	}
-}
+}*/
 
 void yyerror (char const *s) {
 	fprintf(stderr, "%s", s);
