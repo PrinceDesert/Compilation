@@ -6,10 +6,10 @@
 %}
 %token NUMBER
 %%
-	S: S E '\n' | S '\n' | E '\n' | '\n';
-	E : E '+' F | F;
-	F : F '*' T | T;
-	T: '(' E ')' | NUMBER;
+S: S E '\n' | S '\n' | E '\n' | '\n';
+E : E '+' F | F;
+F : F '*' T | T;
+T: '(' E ')' | NUMBER;
 %%
 
 /* return la catégorie de la prochaine unité lexicale sous la forme d'un entier (int) >0 sinon 0 plus rien à lire */
