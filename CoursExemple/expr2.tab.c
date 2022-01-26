@@ -71,7 +71,7 @@
  /* expr2.y */
 	#include <ctype.h>
 	#include <stdio.h>
-	int yylex();
+	int yylex(void);
 	void yyerror (char const *);
 
 #line 78 "expr2.tab.c"
@@ -1261,6 +1261,22 @@ yyreturnlab:
 
 #line 13 "expr2.y"
 
+
+int yylex() {
+ int c;
+ while ( (c=getchar())!= EOF && isblank(c) ) // eat spaces
+ ;
+ if ( c == EOF )
+ return 0; // Nothing left to read
+ if ( isdigit(c) ) {
+ while ( (c=getchar())!= EOF && isdigit(c) ) // eat other digits
+ ;
+ ungetc(c, stdin);
+ return NUMBER;
+ } else {
+ return c;
+ }
+}
 
 void yyerror (char const *s) {
 	fprintf(stderr, "%s", s);
