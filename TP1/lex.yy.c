@@ -445,6 +445,7 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "ex1.l"
 /**
+	Fichier flex
 	Étape 1 : Génération du fichier C qui fait fonctionner les automates et le programme 
 		flex -D_POSIX_SOURCE --nounput -DYY_NO_INPUT ex1.l
 	Étape 2 : Création du programme d'analyse lexicale
@@ -452,15 +453,18 @@ char *yytext;
 	Étape 3 : Indication du fichier à analyser de manière lexicale 
 		./a.out  < exemple.txt
 		./a.out  < exemple.c
-	Exercice :
-	Transposer en flex les expressions régulières du premier exercice
+		
+	Ne pas appliquer l'étape 1, 2, 3 mais utiliser le Makefile
+	Car ce fichier utilise un fichier(ex1.tab.h) crée par un autre fichier n'a pas encore été crée (par bison = ex1.tab.h)
+	Donc si éxécution des étapes 1, 2, 3 = erreur
 */
-#line 13 "ex1.l"
+#line 16 "ex1.l"
 	#include <limits.h>
-	// #include "ex1.tab.h"
+	#include "state.h"
+	#include "ex1.tab.h"
 	void string_to_int(int *v, const char *s);
-#line 463 "lex.yy.c"
-#line 464 "lex.yy.c"
+#line 467 "lex.yy.c"
+#line 468 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -675,9 +679,9 @@ YY_DECL
 		}
 
 	{
-#line 18 "ex1.l"
+#line 22 "ex1.l"
 
-#line 681 "lex.yy.c"
+#line 685 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -736,26 +740,26 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 19 "ex1.l"
-{ printf("%s", "NUMBER"); }
+#line 23 "ex1.l"
+{ string_to_int(&yylval.integer, yytext); return NUMBER; /* return NUMBER pour bison */ }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 20 "ex1.l"
+#line 24 "ex1.l"
 
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 21 "ex1.l"
-{ printf("%s", yytext); }
+#line 25 "ex1.l"
+{ return yytext[0]; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 22 "ex1.l"
+#line 26 "ex1.l"
 ECHO;
 	YY_BREAK
-#line 759 "lex.yy.c"
+#line 763 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1723,20 +1727,20 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 22 "ex1.l"
+#line 26 "ex1.l"
 
 
 void string_to_int(int *r, const char *s) {
-  char *p;
-  long v;
-  errno = 0;
-  v = strtol(s, &p, 10);
-  if ( ( *p != '\0' || ( errno == ERANGE 
-                     && ( v == LONG_MIN || v == LONG_MAX ) ) ) 
-       || ( v < INT_MIN || v > INT_MAX ) ) {
-    fprintf(stderr, "Error converting string to int\n");
-    exit(EXIT_FAILURE);
-  } 
-  *r = v;
+	char *p;
+	long v;
+	errno = 0;
+	v = strtol(s, &p, 10);
+	if ( ( *p != '\0' 
+		|| ( errno == ERANGE && ( v == LONG_MIN || v == LONG_MAX ) ) ) 
+		|| ( v < INT_MIN || v > INT_MAX ) ) {
+	fprintf(stderr, "Error converting string to int\n");
+	exit(EXIT_FAILURE);
+	} 
+	*r = v;
 }
 

@@ -3,14 +3,14 @@ LEX=flex
 YACC=bison
 CC=gcc
 CFLAGS=-g -std=c11 -pedantic -Wall
-LDFLAGS=-ly
+LDFLAGS=-lfl
 # --nounput: ne génère pas la fonction yyunput() inutile
 # --DYY_NO_INPUT: ne prend pas en compte la fonction input() inutile
 # -D_POSIX_SOURCE: déclare la fonction fileno()
 LEXOPTS=-D_POSIX_SOURCE -DYY_NO_INPUT --nounput
 YACCOPTS=
 
-PROG=ex1-corr
+PROG=ex1
 
 $(PROG): lex.yy.o $(PROG).tab.o
 	$(CC) $+ -o $@ $(LDFLAGS) 
