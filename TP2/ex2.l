@@ -18,7 +18,6 @@
 	#include "typesynth.h"
 	#include "ex2.tab.h"
 	void string_to_int(int *v, const char *s);
-	void string_to_bool(bool *b, const char *s);
 %}
 %option noyywrap
 %%
