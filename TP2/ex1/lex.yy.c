@@ -477,9 +477,8 @@ char *yytext;
 	#include "typesynth.h"
 	#include "ex2.tab.h"
 	void string_to_int(int *v, const char *s);
-	void string_to_bool(bool *b, const char *s);
+#line 481 "lex.yy.c"
 #line 482 "lex.yy.c"
-#line 483 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -694,9 +693,9 @@ YY_DECL
 		}
 
 	{
-#line 24 "ex2.l"
+#line 23 "ex2.l"
 
-#line 700 "lex.yy.c"
+#line 699 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -755,56 +754,56 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 25 "ex2.l"
+#line 24 "ex2.l"
 { string_to_int(&yylval.integer, yytext); return NUMBER; /* return NUMBER pour bison */ }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 26 "ex2.l"
+#line 25 "ex2.l"
 { yylval.integer = 1; return BOOLEAN; /* return TRUE pour bison */ }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 27 "ex2.l"
+#line 26 "ex2.l"
 { yylval.integer = 0; return BOOLEAN; /* return FALSE pour bison */ }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "ex2.l"
+#line 27 "ex2.l"
 { return EQ; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 29 "ex2.l"
+#line 28 "ex2.l"
 { return NEQ; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 30 "ex2.l"
+#line 29 "ex2.l"
 { return AND; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 31 "ex2.l"
+#line 30 "ex2.l"
 { return OR; }							
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 34 "ex2.l"
+#line 33 "ex2.l"
 
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
-#line 35 "ex2.l"
+#line 34 "ex2.l"
 { return yytext[0]; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 36 "ex2.l"
+#line 35 "ex2.l"
 ECHO;
 	YY_BREAK
-#line 808 "lex.yy.c"
+#line 807 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1772,7 +1771,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 36 "ex2.l"
+#line 35 "ex2.l"
 
 
 void string_to_int(int *r, const char *s) {

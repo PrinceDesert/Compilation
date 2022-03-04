@@ -469,7 +469,7 @@ extern int yylex (void);
 #undef yyTABLES_NAME
 #endif
 
-#line 36 "ex2.l"
+#line 35 "ex2.l"
 
 
 #line 476 "lex.yy.h"

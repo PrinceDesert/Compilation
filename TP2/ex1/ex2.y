@@ -59,8 +59,17 @@
 				$$ = ERROR_TYPE;
 			}
 		} | expr '-' expr {
-			stack[stack_size - 2] -= stack[stack_size - 1];
-			--stack_size;
+			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+				stack[stack_size - 2] -= stack[stack_size - 1];
+				--stack_size;
+				$$ = ARITHMETIC_T;
+			} else {
+				yyerror("[Erreur] '*' de typage");
+				stack[stack_size - 2] = 0;
+				stack[stack_size - 1] = 0;
+				stack_size -= 2;
+				$$ = ERROR_TYPE;
+			}
 		} | expr '*' expr {
 			 /* Si $1 == ERROR || $3 == ERROR pas de multiplication */
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
@@ -170,7 +179,8 @@
 			}
 		} | expr AND expr {
 			if (is_same_type(1, $1, $3, BOOLEAN_T)) {
-				stack[stack_size - 2] = stack[stack_size - 2] != stack[stack_size - 1]; 
+				// stack[stack_size - 2] = stack[stack_size - 2] && stack[stack_size - 1];
+				stack[stack_size - 2] *= stack[stack_size - 1];
 				++stack_size;
 				$$ = $1; // $1 = BOOLEAN_T
 			} else if ($1 != BOOLEAN_T) {
@@ -179,46 +189,31 @@
 				} else {
 					$$ = $1; // = ARITHMETIC_T
 				}
-			} else if ($3 == ARITHMETIC_T) {
-				$$ = ERROR_TYPE;
 			} else {
-				// problème à régler
-			}
-			
-			/**
-				* Si $1, $3 == BOOLEAN_T
-					* effectue le and
-					* remonte $$ = BOOLEAN_T
-				* Sinon
-					* Si $1 != BOOLEAN_T
-						* Si $1 == ARITHMETIC_T -> ERREUR_TYPE
-						  Sinon $$ = $1 (= ARITHMETIC_T)
-					* Sinon 
-						* si $3 == ARITHMETIC_T -> ERREUR_TYPE
-					     * sinon $$ = $3
-			*/
-			if (is_same_type(2, $1, $3, ARITHMETIC_T, BOOLEAN_T)) {
-				stack[stack_size - 2] = stack[stack_size - 2] && stack[stack_size - 1]; 
-				++stack_size;
-				$$ = AND_T;
-			} else {
-				yyerror("[Erreur] '&&' de typage");
-				stack[stack_size - 2] = 0;
-				stack[stack_size - 1] = 0;
-				stack_size -= 2;
-				$$ = ERROR_TYPE;
+				if ($3 == ARITHMETIC_T) {
+					$$ = ERROR_TYPE;
+				} else {
+					$$ = $3; // = ARITHMETIC_T
+				}
 			}
 		} | expr OR expr {
-			if (is_same_type(2, $1, $3, ARITHMETIC_T, BOOLEAN_T)) {
-				stack[stack_size - 2] = stack[stack_size - 2] && stack[stack_size - 1]; 
+			if (is_same_type(1, $1, $3, BOOLEAN_T)) {
+				// stack[stack_size - 2] = stack[stack_size - 2]  stack[stack_size - 1];
+				stack[stack_size - 2] += stack[stack_size - 1];
 				++stack_size;
-				$$ = OR_T;
+				$$ = $1; // $1 = BOOLEAN_T
+			} else if ($1 != BOOLEAN_T) {
+				if ($1 == ARITHMETIC_T) {
+					$$ = ERROR_TYPE;
+				} else {
+					$$ = $1; // = ARITHMETIC_T
+				}
 			} else {
-				yyerror("[Erreur] '&&' de typage");
-				stack[stack_size - 2] = 0;
-				stack[stack_size - 1] = 0;
-				stack_size -= 2;
-				$$ = ERROR_TYPE;
+				if ($3 == ARITHMETIC_T) {
+					$$ = ERROR_TYPE;
+				} else {
+					$$ = $3; // = ARITHMETIC_T
+				}
 			}
 		} | NUMBER {
 			stack[stack_size] = $1; /* la taille de la pile est la valeur du chiffre */
