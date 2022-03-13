@@ -4,6 +4,7 @@ Il est ensuite éxécuté avec sipro.
 Lorsque l'analyse est terminé, faire un CTRL+D pour fermer l'analyse, pour que yyparse se termine.
 
 # Makefile
+(Pour modifier ex3 = nom de l'éxécutable, modifier le dans le makefile)
 make
 ./ex3 > ./asm/test.asm
 
