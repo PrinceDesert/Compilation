@@ -8,10 +8,10 @@
 	#include <math.h>
 	#include <limits.h>
 	#include "typesynth.h"
+	#include "stable.h"
+	
 	int yylex(void);
 	void yyerror(char const *);
-	
-	// Check type
 	int is_same_type(size_t size_args, type_synth $1, type_synth $3, ...); /* $1 == BOOLEAN_T && $3 == BOOLEAN_T && value == BOOLEAN_T*/
 	// Label asm
 	static unsigned int new_label_number();
@@ -20,6 +20,7 @@
 	
 	#define BUFFER_SIZE_MAX 256
 	
+	
 	/**
 		* ToDo : 
 		* ENelver toutes les divisions par zéro, on utilise plus la stack donc tout enlevé à propos de la stack
@@ -27,17 +28,22 @@
 		* stack_size plus besoin car là il faut écrire dans un fichier asm que on ouvre dans le main
 		* division par zéro code assembleur qui le gère, le bit z fl positioné à 1, jumpz que si bit z est à 1
 	*/
-	char lbl_s_errordiv[BUFFER_SIZE_MAX];
+	
 %}
 %union {
 	int integer;
 	bool boolean;
-	type_synth state;
+	type_synth state; /* conserve pour les erreurs de typage */
+	char id[64]; /* nom de la variable */
+	type_synth stype;
 }
 
 %token<integer> NUMBER /* le integer est relié à l'union -> integer */
 %token<boolean> BOOLEAN /* le boolean est relié à l'union −> boolean */
 %type<state> expr /* le state est relié au champ de l'union state */
+/* il faut mettre un type pour utiliser le $$ */ 
+%token<id> ID /* on les met en token car pas de on leur écrit pas de règle */
+%token<stype> TYPE
 
 /* associativité à gauche et priorité des opérateurs */
 /* EQ = EQUALS, NEQ = NOT EQUALS priorité plus faible */
@@ -53,9 +59,10 @@
 		lignes error '\n'		{ yyerrok; }
 		| expr error '\n'		{ yyerrok; }
 		| error '\n'			{ yyerrok; }
-		| lignes expr '\n'		{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
+		| lignes expr '\n'		{  }
 		| lignes '\n'
-		| expr '\n'				{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
+		| expr '\n'				{  }
+		| decl '\n'
 		| '\n'
 	;
 	
@@ -66,10 +73,12 @@
 		} | expr '+' expr {
 			/* $1 = expr, $2 = '+', $3 = expr */
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+				// ax : stack_size - 1
+				// bx : stack_size - 2
 				printf("\tpop ax\n"); // dépile la pile dont la valeur est mise dans ax
 				printf("\tpop bx\n"); // dépile la pile dont la valeur est mise dans bx
-				printf("\tadd ax,bx\n"); // fait le plus de ax+bx que on met sur ax
-				printf("\tpush ax\n"); // push ax sur la pile qui a le nouveau résultat
+				printf("\tadd ax, bx\n"); // fait le plus de ax+bx que on met sur ax
+				printf("\tpop ax\n"); // push ax sur la pile qui a le nouveau résultat
 				$$ = ARITHMETIC_T;
 			} else {
 				yyerror("[Erreur] '+' de typage");
@@ -77,10 +86,10 @@
 			}
 		} | expr '-' expr {
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
-				printf("\tpop bx\n");
 				printf("\tpop ax\n");
-				printf("\tsub ax,bx\n");
-				printf("\tpush ax\n");
+				printf("\tpop bx\n");
+				printf("\tsub ax, bx\n");
+				printf("\tpop ax\n");
 				$$ = ARITHMETIC_T;
 			} else {
 				yyerror("[Erreur] '*' de typage");
@@ -89,10 +98,12 @@
 		} | expr '*' expr {
 			 /* Si $1 == ERROR || $3 == ERROR pas de multiplication */
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+				
 				printf("\tpop ax\n");
 				printf("\tpop bx\n");
-				printf("\tmul ax,bx\n");
-				printf("\tpush ax\n");
+				printf("\tmul ax, bx\n");
+				printf("\tpop ax\n");
+				
 				$$ = ARITHMETIC_T;
 			} else {
 				yyerror("[Erreur] '*' de typage");
@@ -101,27 +112,35 @@
 		} | expr '/' expr {
 			/* $1 = expr, $2 = aucun car pas de non terminal mais un terminal '/', $3 = expr et test division par zéro */
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
-				// Création d'étiquettes uniques
-				char lbl_errordiv[BUFFER_SIZE_MAX];
-				char lbl_end_div[BUFFER_SIZE_MAX];
-				unsigned int ln = new_label_number();
 				
-				create_label(lbl_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "err", "div0", ln);
-				create_label(lbl_end_div, BUFFER_SIZE_MAX, "%s:%s:%u", "fin", "div", ln);
+				// Erreur division par zéro
+				printf("@string errdiv0");
+				printf("Erreur de division par 0\n");
 				
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
-				printf("\tconst cx,%s\n", lbl_errordiv);
+				
+				// Création d'étiquettes uniques
+				char buf_error_div[BUFFER_SIZE_MAX];
+				char buf_end_div[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(buf_error_div, BUFFER_SIZE_MAX, "%s:%s:%u", "err", "div0", ln);
+				create_label(buf_end_div, BUFFER_SIZE_MAX, "%s:%s:%u", "end", "div", ln);
+				
+				printf("\tconst cx,%s\n", buf_error_div);
+				printf("\tpop bx\n");
+				
 				printf("\tdiv ax,bx\n");
-				printf("\tjmpe cx\n");
+				printf("\tjumpe cx\n");
+				
 				printf("\tpush ax\n");
-				printf("\tconst ax,%s\n", lbl_end_div);
-				printf("\tjmp ax\n");
-				printf(":%s\n", lbl_errordiv);
-				printf("\tconst ax,%s\n", lbl_s_errordiv);
+				printf("\tconst ax,%s\n", buf_end_div);
+				
+				printf("%s\n", buf_error_div);
+				printf("\tconst ax, errdiv0\n");
 				printf("\tcallprintfs ax\n");
-				printf("\tend\n");
-				printf(":%s\n", lbl_end_div); // si pas d'erreur ça sort sur ce label qui fait rien
+				
+				printf("%s\n", buf_end_div); // si pas d'erreur ça sort sur ce label qui fait rien
 				
 				$$ = ARITHMETIC_T;
 				
@@ -133,14 +152,14 @@
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
 				$$ = ARITHMETIC_T;
 			} else {
-				yyerror("[Erreur] '%%' de typage");
+				yyerror("[Erreur] '%' de typage");
 				$$ = ERROR_TYPE;
 			}
 		} | expr '^' expr {
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
 				$$ = ARITHMETIC_T;
 			} else {
-				yyerror("[Erreur] '^' de typage");
+				yyerror("[Erreur] '%' de typage");
 				$$ = ERROR_TYPE;
 			}
 		} | expr EQ expr {
@@ -148,7 +167,8 @@
 				$$ = BOOLEAN_T;
 			} else {
 				yyerror("[Erreur] '==' de typage");
-				$$ = ERROR_TYPE; /* si l'erreur vient de $1, on remonte $1 */
+				$$ = ERROR_TYPE;
+				/* si l'erreur vient de $1, on remonte $1 */
 			}
 		} | expr NEQ expr {
 			if (is_same_type(2, $1, $3, ARITHMETIC_T, BOOLEAN_T)) {
@@ -160,25 +180,25 @@
 				create_label(buf2, BUFFER_SIZE_MAX, "%s:%u", "finsaut", ln);
 				
 				// on empile 0
-				printf("\tconst bx,0\n");
+				printf("\tconst bx, 0\n");
 				printf("\tpop ax\n");
 				
 				// compare ax, bx
-				printf("\tconst ax,%s\n", buf1);
+				printf("\tconst ax, %s\n", buf1);
 				printf("\tcmp ax,bx\n");
 				
 				printf("\tjmpc cx\n");
 				
 				// si ça vaut 0
-				printf("\tconst ax,0\n");
+				printf("\tconst ax, 0\n");
 				printf("\tpush ax\n");
-				printf("\tconst ax,%s\n", buf2);
-				printf("\tjmp ax\n");
+				printf("\tconst ax, %s\n", buf2);
+				printf("\tjump ax");
 				
-				printf(":%s\n", buf1);
-				printf("\tconst ax,1\n");
+				printf("saut:\n");
+				printf("\tconst ax, 1\n");
 				printf("\tpush ax\n");
-				printf(":%s\n", buf2);
+				printf("finsaut:\n");
 				$$ = BOOLEAN_T;
 			} else {
 				yyerror("[Erreur] '!=' de typage");
@@ -227,6 +247,20 @@
 			$$ = BOOLEAN_T;
 		}
 	;
+	decl :
+		TYPE ID ';' {
+			printf("déclaration de la variable %s\n", $2);
+			// new_symbol_table_entry($2);
+			// vérifier si ça existe pas déja
+			// et on lui affecte un type
+			// on remplit la structure symbol_table_entry symbol_table_entry->DESC
+			$$ = BOOLEAN_T;
+			
+		} | TYPE ID '=' expr ';' {
+			printf("déclaration et affectation de la variable\n");
+			
+		}
+	;
 %%
 	
 int is_same_type(size_t size_args, type_synth $1, type_synth $3, ...) {
@@ -250,7 +284,6 @@ void yyerror(char const *s) {
 	fprintf(stderr, "%s\n", s);
 }
 	
-	
 // Label asm
 static unsigned int new_label_number() {
 	static unsigned int current_label_number = 0u;
@@ -261,11 +294,10 @@ static unsigned int new_label_number() {
 }
 	
 /*
- * Example :
- * char buf1[MAXBUF], char buf2[MAXBUF];
- * unsigned ln = new_label_number();
- * create_label(buf1, MAXBUF, "%s:%u:%s", "loop", ln, "begin");
- * create_label(buf2, MAXBUF, "%s:%u:%s", "loop", ln, "end");
+* char buf1[MAXBUF], char buf2[MAXBUF];
+* unsigned ln = new_label_number();
+* create_label(buf1, MAXBUF, "%s:%u:%s", "loop", ln, "begin");
+* create_label(buf2, MAXBUF, "%s:%u:%s", "loop", ln, "end");
 */
 static void create_label(char *buf, size_t buf_size, const char *format, ...) {
 	va_list ap;
@@ -286,20 +318,11 @@ void fail_with(const char *format, ...) {
 }
 	
 	
-int main(void) {
-	
+int main(void) {	
 	// Génère les instructions du début pour l'asm asipro avant l'analyse grammaticale
 	printf("; Exercice 1\n\n");
 	printf("\tconst ax,debut\n");
 	printf("\tjmp ax\n");
-	
-	// Déclarations des strings qui peuvent être utiliser
-	create_label(lbl_s_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "s_err", "div0", new_label_number());
-	printf("\n");
-	printf(":%s\n", lbl_s_errordiv);
-	printf("@string \"Erreur de division par 0\\n\"\n");
-	printf("\n");
-	
 	printf(":debut\n");
 	printf("; Préparation de la pile\n");
 	printf("\tconst bp,pile\n"); // bp : fond de la pile
@@ -308,14 +331,14 @@ int main(void) {
 	printf("\tsub sp,ax\n"); // on fait la soustraction pour mettre le sommet de pile à - 2
 	
 	// Analyse grammaticale
-	printf("; Résultat de bison\n");
 	yyparse();
-
+	
 	// Génère les instructions de fin pour l'asm asipro avant l'analyse grammaticale
 	printf("; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile\n");
 	printf("\tcp ax,sp\n");
 	printf("\tcallprintfd ax\n");
 	printf("\tend\n");
+	
 	printf("; La zone de pile\n");
 	printf(":pile\n");
 	printf("@int 0\n");
