@@ -13,32 +13,23 @@
 	const ax,2
 	sub sp,ax
 ; Résultat de bison
-	const ax,452
+	const ax,4
 	push ax
-	const ax,75
+	const ax,2
 	push ax
-	pop bx
+	const bx,0
 	pop ax
-	cp dx,ax
-	const cx,err:div0:1
-	div ax,bx
-	jmpe cx
-	cp cx,dx
-	cp dx,bx
+	const ax,saut:1
+	cmp ax,bx
+	jmpc cx
+	const ax,0
 	push ax
-	const ax,fin:div:1
+	const ax,finsaut:1
 	jmp ax
-:err:div0:1
-	const ax,s_err:div0:0
-	callprintfs ax
-	end
-:fin:div:1
-	pop ax
-	mul ax,dx
+:saut:1
+	const ax,1
 	push ax
-	pop ax
-	sub cx,ax
-	push cx
+:finsaut:1
 ; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile
 	cp ax,sp
 	callprintfd ax

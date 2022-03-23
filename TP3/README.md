@@ -9,7 +9,10 @@ make
 ./ex3 > ./asm/test.asm
 
 # Exécuter le code assembleur
-asipro ./asm/test.asm executable
+Se rendre dans le dossier asm, comme ça le executable généré est dans le dossier asm,
+car sinon il est crée dans le dossier courant
+cd asm
+asipro test.asm executable
 sipro executable
 
 # Exemple

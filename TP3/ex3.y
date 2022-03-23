@@ -105,10 +105,8 @@
 				char lbl_errordiv[BUFFER_SIZE_MAX];
 				char lbl_end_div[BUFFER_SIZE_MAX];
 				unsigned int ln = new_label_number();
-				
 				create_label(lbl_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "err", "div0", ln);
 				create_label(lbl_end_div, BUFFER_SIZE_MAX, "%s:%s:%u", "fin", "div", ln);
-				
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
 				printf("\tconst cx,%s\n", lbl_errordiv);
@@ -122,9 +120,7 @@
 				printf("\tcallprintfs ax\n");
 				printf("\tend\n");
 				printf(":%s\n", lbl_end_div); // si pas d'erreur ça sort sur ce label qui fait rien
-				
 				$$ = ARITHMETIC_T;
-				
 			} else {
 				yyerror("[Erreur] '/' de typage");
 				$$ = ERROR_TYPE;
@@ -132,6 +128,33 @@
 		} | expr '%' expr {
 			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
 				$$ = ARITHMETIC_T;
+				char lbl_errordiv[BUFFER_SIZE_MAX];
+				char lbl_end_div[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "err", "div0", ln);
+				create_label(lbl_end_div, BUFFER_SIZE_MAX, "%s:%s:%u", "fin", "div", ln);
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tcp dx,ax\n");
+				printf("\tconst cx,%s\n", lbl_errordiv);
+				printf("\tdiv ax,bx\n");
+				printf("\tjmpe cx\n");
+				printf("\tcp cx,dx\n"); // copie dans cx de dx qui contient ax pour l'utiliser plustard
+				printf("\tcp dx,bx\n");
+				printf("\tpush ax\n");
+				printf("\tconst ax,%s\n", lbl_end_div);
+				printf("\tjmp ax\n");
+				printf(":%s\n", lbl_errordiv);
+				printf("\tconst ax,%s\n", lbl_s_errordiv);
+				printf("\tcallprintfs ax\n");
+				printf("\tend\n");
+				printf(":%s\n", lbl_end_div);
+				printf("\tpop ax\n");
+				printf("\tmul ax,dx\n");
+				printf("\tpush ax\n");
+				printf("\tpop ax\n");
+				printf("\tsub cx,ax\n");
+				printf("\tpush cx\n");
 			} else {
 				yyerror("[Erreur] '%%' de typage");
 				$$ = ERROR_TYPE;
@@ -159,22 +182,19 @@
 				create_label(buf1, BUFFER_SIZE_MAX, "%s:%u", "saut", ln);
 				create_label(buf2, BUFFER_SIZE_MAX, "%s:%u", "finsaut", ln);
 				
+				// NE FONCTIONNE PAS
 				// on empile 0
 				printf("\tconst bx,0\n");
 				printf("\tpop ax\n");
-				
 				// compare ax, bx
-				printf("\tconst ax,%s\n", buf1);
+				printf("\tconst cx,%s\n", buf1);
 				printf("\tcmp ax,bx\n");
-				
 				printf("\tjmpc cx\n");
-				
 				// si ça vaut 0
 				printf("\tconst ax,0\n");
 				printf("\tpush ax\n");
 				printf("\tconst ax,%s\n", buf2);
 				printf("\tjmp ax\n");
-				
 				printf(":%s\n", buf1);
 				printf("\tconst ax,1\n");
 				printf("\tpush ax\n");
@@ -186,6 +206,29 @@
 			}
 		} | expr AND expr {
 			if (is_same_type(1, $1, $3, BOOLEAN_T)) {
+				char lbl_true[BUFFER_SIZE_MAX];
+				char lbl_end_true[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%u", "true", ln);
+				create_label(lbl_end_true, BUFFER_SIZE_MAX, "%s:%u", "endtrue", ln);
+				
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tand ax,bx\n");
+				printf("\tpush ax\n");
+				printf("\tpop ax\n");
+				printf("\tconst cx,%s\n", lbl_true);
+				printf("\tcmp ax,bx\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf("\tconst cx,%s\n", lbl_end_true);
+				printf("\tjmp cx\n");
+				printf("%s\n", lbl_true);
+				printf("\tconst ax,1\n");
+				printf("\tpush ax\n");
+				printf("%s\n", lbl_end_true);
+				
 				$$ = $1; // $1 = BOOLEAN_T
 			} else if ($1 != BOOLEAN_T) {
 				if ($1 == ARITHMETIC_T) {
