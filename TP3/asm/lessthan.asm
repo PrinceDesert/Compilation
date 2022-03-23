@@ -1,4 +1,4 @@
-; AND : 1 && 1 = 1, 1 && 0 = 0,  0 && 1 = 0, 0 && 0 = 0 
+; Less than : 19 < 18 = 0 (false)
 
 	const ax,debut
 	jmp ax
@@ -13,14 +13,23 @@
 	const ax,2
 	sub sp,ax
 ; Résultat de bison
-	const ax,1
+	const ax,19
 	push ax
-	const ax,1
+	const ax,18
 	push ax
 	pop bx
 	pop ax
-	and ax,bx
+	const cx,lt:true
+	sless ax,bx
+	jmpc cx
+	const ax,0
 	push ax
+	const cx,endlt:true
+	jmp cx
+:lt:true
+	const ax,1
+	push ax
+:endlt:true
 ; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile
 	cp ax,sp
 	callprintfd ax

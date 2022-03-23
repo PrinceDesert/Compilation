@@ -41,7 +41,7 @@
 
 /* associativité à gauche et priorité des opérateurs */
 /* EQ = EQUALS, NEQ = NOT EQUALS priorité plus faible */
-%left EQ NEQ
+%left EQ NEQ GT LT
 %left AND OR
 %left '+''-'
 %left '*''/''%''^'
@@ -205,30 +205,12 @@
 				$$ = ERROR_TYPE;
 			}
 		} | expr AND expr {
+			// example : true && true, true && false 
 			if (is_same_type(1, $1, $3, BOOLEAN_T)) {
-				char lbl_true[BUFFER_SIZE_MAX];
-				char lbl_end_true[BUFFER_SIZE_MAX];
-				unsigned int ln = new_label_number();
-				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%u", "true", ln);
-				create_label(lbl_end_true, BUFFER_SIZE_MAX, "%s:%u", "endtrue", ln);
-				
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
 				printf("\tand ax,bx\n");
 				printf("\tpush ax\n");
-				printf("\tpop ax\n");
-				printf("\tconst cx,%s\n", lbl_true);
-				printf("\tcmp ax,bx\n");
-				printf("\tjmpc cx\n");
-				printf("\tconst ax,0\n");
-				printf("\tpush ax\n");
-				printf("\tconst cx,%s\n", lbl_end_true);
-				printf("\tjmp cx\n");
-				printf("%s\n", lbl_true);
-				printf("\tconst ax,1\n");
-				printf("\tpush ax\n");
-				printf("%s\n", lbl_end_true);
-				
 				$$ = $1; // $1 = BOOLEAN_T
 			} else if ($1 != BOOLEAN_T) {
 				if ($1 == ARITHMETIC_T) {
@@ -244,7 +226,12 @@
 				}
 			}
 		} | expr OR expr {
+			// example : true || true, true || false
 			if (is_same_type(1, $1, $3, BOOLEAN_T)) {
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tor ax,bx\n");
+				printf("\tpush ax\n");
 				$$ = $1; // $1 = BOOLEAN_T
 			} else if ($1 != BOOLEAN_T) {
 				if ($1 == ARITHMETIC_T) {
@@ -258,6 +245,54 @@
 				} else {
 					$$ = $3; // = ARITHMETIC_T
 				}
+			}
+		} | expr GT expr {
+			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+				char lbl_true[BUFFER_SIZE_MAX];
+				char lbl_endtrue[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%s:%u", "gt", "true", ln);
+				create_label(lbl_endtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "gt", "endtrue", ln);
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tconst cx,%s\n", lbl_true);
+				printf("\tsless bx,ax\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf("\tconst cx,%s\n", lbl_endtrue);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_true);
+				printf("\tconst ax,1\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endtrue);
+				$$ = BOOLEAN_T; // remonte un booléan comme résultat
+			} else {
+				$$ = ERROR_TYPE;
+			}
+		} | expr LT expr {
+			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+				char lbl_true[BUFFER_SIZE_MAX];
+				char lbl_endtrue[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%s:%u", "lt", "true", ln);
+				create_label(lbl_endtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "lt", "endtrue", ln);
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tconst cx,%s\n", lbl_true);
+				printf("\tsless ax,bx\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf("\tconst cx,%s\n", lbl_endtrue);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_true);
+				printf("\tconst ax,1\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endtrue);
+				$$ = BOOLEAN_T;
+			} else {
+				$$ = ERROR_TYPE;
 			}
 		} | NUMBER {
 			// Affiche le code asm asipro correspondant

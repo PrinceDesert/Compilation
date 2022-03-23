@@ -58,8 +58,10 @@ extern int yydebug;
     BOOLEAN = 259,                 /* BOOLEAN  */
     EQ = 260,                      /* EQ  */
     NEQ = 261,                     /* NEQ  */
-    AND = 262,                     /* AND  */
-    OR = 263                       /* OR  */
+    GT = 262,                      /* GT  */
+    LT = 263,                      /* LT  */
+    AND = 264,                     /* AND  */
+    OR = 265                       /* OR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -74,7 +76,7 @@ union YYSTYPE
 	bool boolean;
 	type_synth state;
 
-#line 78 "ex3.tab.h"
+#line 80 "ex3.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

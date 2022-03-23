@@ -26,10 +26,10 @@ true						{ yylval.integer = 1; return BOOLEAN; /* return TRUE pour bison */ }
 false						{ yylval.integer = 0; return BOOLEAN; /* return FALSE pour bison */ }
 ==							{ return EQ; }
 != 							{ return NEQ; }
-&&							{ return AND; }
-\|\| 						{ return OR; }							
-
-
+&&							{return AND; }
+\|\| 						{ return OR; }
+\>							{ return GT; }
+\<							{ return LT; }
 [[:blank:]]					
 .|\n						{ return yytext[0]; }
 %%

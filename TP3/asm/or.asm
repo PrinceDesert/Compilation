@@ -1,4 +1,4 @@
-; AND : 1 && 1 = 1, 1 && 0 = 0,  0 && 1 = 0, 0 && 0 = 0 
+; OR : 1 || 1 = 1, 1 || 0 = 1,  0 || 1 = 1, 0 || 0 = 0 
 
 	const ax,debut
 	jmp ax
@@ -15,11 +15,11 @@
 ; Résultat de bison
 	const ax,1
 	push ax
-	const ax,1
+	const ax,0
 	push ax
 	pop bx
 	pop ax
-	and ax,bx
+	or ax,bx
 	push ax
 ; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile
 	cp ax,sp

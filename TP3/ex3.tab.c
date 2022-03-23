@@ -134,20 +134,22 @@ enum yysymbol_kind_t
   YYSYMBOL_BOOLEAN = 4,                    /* BOOLEAN  */
   YYSYMBOL_EQ = 5,                         /* EQ  */
   YYSYMBOL_NEQ = 6,                        /* NEQ  */
-  YYSYMBOL_AND = 7,                        /* AND  */
-  YYSYMBOL_OR = 8,                         /* OR  */
-  YYSYMBOL_9_ = 9,                         /* '+'  */
-  YYSYMBOL_10_ = 10,                       /* '-'  */
-  YYSYMBOL_11_ = 11,                       /* '*'  */
-  YYSYMBOL_12_ = 12,                       /* '/'  */
-  YYSYMBOL_13_ = 13,                       /* '%'  */
-  YYSYMBOL_14_ = 14,                       /* '^'  */
-  YYSYMBOL_15_n_ = 15,                     /* '\n'  */
-  YYSYMBOL_16_ = 16,                       /* '('  */
-  YYSYMBOL_17_ = 17,                       /* ')'  */
-  YYSYMBOL_YYACCEPT = 18,                  /* $accept  */
-  YYSYMBOL_lignes = 19,                    /* lignes  */
-  YYSYMBOL_expr = 20                       /* expr  */
+  YYSYMBOL_GT = 7,                         /* GT  */
+  YYSYMBOL_LT = 8,                         /* LT  */
+  YYSYMBOL_AND = 9,                        /* AND  */
+  YYSYMBOL_OR = 10,                        /* OR  */
+  YYSYMBOL_11_ = 11,                       /* '+'  */
+  YYSYMBOL_12_ = 12,                       /* '-'  */
+  YYSYMBOL_13_ = 13,                       /* '*'  */
+  YYSYMBOL_14_ = 14,                       /* '/'  */
+  YYSYMBOL_15_ = 15,                       /* '%'  */
+  YYSYMBOL_16_ = 16,                       /* '^'  */
+  YYSYMBOL_17_n_ = 17,                     /* '\n'  */
+  YYSYMBOL_18_ = 18,                       /* '('  */
+  YYSYMBOL_19_ = 19,                       /* ')'  */
+  YYSYMBOL_YYACCEPT = 20,                  /* $accept  */
+  YYSYMBOL_lignes = 21,                    /* lignes  */
+  YYSYMBOL_expr = 22                       /* expr  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -475,19 +477,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  10
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   85
+#define YYLAST   95
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  18
+#define YYNTOKENS  20
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  21
+#define YYNRULES  23
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  40
+#define YYNSTATES  44
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   263
+#define YYMAXUTOK   265
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -502,15 +504,15 @@ union yyalloc
 static const yytype_int8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      15,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+      17,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,    13,     2,     2,
-      16,    17,    11,     9,     2,    10,     2,    12,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,    15,     2,     2,
+      18,    19,    13,    11,     2,    12,     2,    14,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,    14,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,    16,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -527,16 +529,16 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8
+       5,     6,     7,     8,     9,    10
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
        0,    53,    53,    54,    55,    56,    57,    58,    59,    63,
-      66,    78,    89,   101,   132,   168,   175,   182,   216,   232,
-     248,   253
+      66,    78,    89,   101,   128,   162,   169,   176,   207,   227,
+     247,   271,   295,   300
 };
 #endif
 
@@ -553,8 +555,8 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "NUMBER", "BOOLEAN",
-  "EQ", "NEQ", "AND", "OR", "'+'", "'-'", "'*'", "'/'", "'%'", "'^'",
-  "'\\n'", "'('", "')'", "$accept", "lignes", "expr", YY_NULLPTR
+  "EQ", "NEQ", "GT", "LT", "AND", "OR", "'+'", "'-'", "'*'", "'/'", "'%'",
+  "'^'", "'\\n'", "'('", "')'", "$accept", "lignes", "expr", YY_NULLPTR
 };
 
 static const char *
@@ -564,7 +566,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-14)
+#define YYPACT_NINF (-16)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -578,10 +580,11 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      21,   -13,   -14,   -14,   -14,    46,     5,    33,   -14,    47,
-     -14,   -12,   -14,    60,   -11,    46,    46,    46,    46,    46,
-      46,    46,    46,    46,    46,   -14,   -14,   -14,   -14,   -14,
-      19,    19,    67,    67,    71,    71,   -14,   -14,   -14,   -14
+      23,   -15,   -16,   -16,   -16,    52,     5,    37,   -16,    53,
+     -16,   -14,   -16,    68,   -13,    52,    52,    52,    52,    52,
+      52,    52,    52,    52,    52,    52,    52,   -16,   -16,   -16,
+     -16,   -16,    19,    19,    19,    19,    75,    75,    79,    79,
+     -16,   -16,   -16,   -16
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -589,16 +592,17 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,    20,    21,     8,     0,     0,     0,     4,     0,
+       0,     0,    22,    23,     8,     0,     0,     0,     4,     0,
        1,     0,     6,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     7,     9,     2,     5,     3,
-      16,    17,    18,    19,    10,    11,    12,    13,    14,    15
+       0,     0,     0,     0,     0,     0,     0,     7,     9,     2,
+       5,     3,    16,    17,    20,    21,    18,    19,    10,    11,
+      12,    13,    14,    15
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -14,   -14,    -5
+     -16,   -16,    -5
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -612,46 +616,49 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       9,    13,     8,    27,    29,    10,    11,     0,     2,     3,
-      30,    31,    32,    33,    34,    35,    36,    37,    38,    39,
-      12,     5,     1,     0,     2,     3,    17,    18,    19,    20,
-      21,    22,    23,    24,    14,     0,     4,     5,    15,    16,
-      17,    18,    19,    20,    21,    22,    23,    24,    25,     2,
-       3,     0,    15,    16,    17,    18,    19,    20,    21,    22,
-      23,    24,     5,     0,    26,    15,    16,    17,    18,    19,
-      20,    21,    22,    23,    24,    28,    19,    20,    21,    22,
-      23,    24,    21,    22,    23,    24
+       9,    13,     8,    29,    31,    10,    11,     0,     2,     3,
+      32,    33,    34,    35,    36,    37,    38,    39,    40,    41,
+      42,    43,    12,     5,     1,     0,     2,     3,    19,    20,
+      21,    22,    23,    24,    25,    26,     0,     0,    14,     0,
+       4,     5,    15,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    25,    26,    27,     2,     3,     0,    15,    16,
+      17,    18,    19,    20,    21,    22,    23,    24,    25,    26,
+       5,     0,    28,    15,    16,    17,    18,    19,    20,    21,
+      22,    23,    24,    25,    26,    30,    21,    22,    23,    24,
+      25,    26,    23,    24,    25,    26
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     6,    15,    15,    15,     0,     1,    -1,     3,     4,
+       5,     6,    17,    17,    17,     0,     1,    -1,     3,     4,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
-      15,    16,     1,    -1,     3,     4,     7,     8,     9,    10,
-      11,    12,    13,    14,     1,    -1,    15,    16,     5,     6,
-       7,     8,     9,    10,    11,    12,    13,    14,    15,     3,
-       4,    -1,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    16,    -1,    17,     5,     6,     7,     8,     9,
-      10,    11,    12,    13,    14,    15,     9,    10,    11,    12,
-      13,    14,    11,    12,    13,    14
+      25,    26,    17,    18,     1,    -1,     3,     4,     9,    10,
+      11,    12,    13,    14,    15,    16,    -1,    -1,     1,    -1,
+      17,    18,     5,     6,     7,     8,     9,    10,    11,    12,
+      13,    14,    15,    16,    17,     3,     4,    -1,     5,     6,
+       7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
+      18,    -1,    19,     5,     6,     7,     8,     9,    10,    11,
+      12,    13,    14,    15,    16,    17,    11,    12,    13,    14,
+      15,    16,    13,    14,    15,    16
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     1,     3,     4,    15,    16,    19,    20,    15,    20,
-       0,     1,    15,    20,     1,     5,     6,     7,     8,     9,
-      10,    11,    12,    13,    14,    15,    17,    15,    15,    15,
-      20,    20,    20,    20,    20,    20,    20,    20,    20,    20
+       0,     1,     3,     4,    17,    18,    21,    22,    17,    22,
+       0,     1,    17,    22,     1,     5,     6,     7,     8,     9,
+      10,    11,    12,    13,    14,    15,    16,    17,    19,    17,
+      17,    17,    22,    22,    22,    22,    22,    22,    22,    22,
+      22,    22,    22,    22
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    18,    19,    19,    19,    19,    19,    19,    19,    20,
-      20,    20,    20,    20,    20,    20,    20,    20,    20,    20,
-      20,    20
+       0,    20,    21,    21,    21,    21,    21,    21,    21,    22,
+      22,    22,    22,    22,    22,    22,    22,    22,    22,    22,
+      22,    22,    22,    22
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -659,7 +666,7 @@ static const yytype_int8 yyr2[] =
 {
        0,     2,     3,     3,     2,     3,     2,     2,     1,     3,
        3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-       1,     1
+       3,     3,     1,     1
 };
 
 
@@ -1125,31 +1132,31 @@ yyreduce:
   case 2: /* lignes: lignes error '\n'  */
 #line 53 "ex3.y"
                                                 { yyerrok; }
-#line 1129 "ex3.tab.c"
+#line 1136 "ex3.tab.c"
     break;
 
   case 3: /* lignes: expr error '\n'  */
 #line 54 "ex3.y"
                                                 { yyerrok; }
-#line 1135 "ex3.tab.c"
+#line 1142 "ex3.tab.c"
     break;
 
   case 4: /* lignes: error '\n'  */
 #line 55 "ex3.y"
                                                 { yyerrok; }
-#line 1141 "ex3.tab.c"
+#line 1148 "ex3.tab.c"
     break;
 
   case 5: /* lignes: lignes expr '\n'  */
 #line 56 "ex3.y"
                                                 { /*printf("%d\n", stack[0]); stack_size = 0;*/ }
-#line 1147 "ex3.tab.c"
+#line 1154 "ex3.tab.c"
     break;
 
   case 7: /* lignes: expr '\n'  */
 #line 58 "ex3.y"
                                                         { /*printf("%d\n", stack[0]); stack_size = 0;*/ }
-#line 1153 "ex3.tab.c"
+#line 1160 "ex3.tab.c"
     break;
 
   case 9: /* expr: '(' expr ')'  */
@@ -1158,7 +1165,7 @@ yyreduce:
 			/* on fait rien sur la pile sur les parenthèses, on remonte juste l'expression = $2 */
 			(yyval.state) = (yyvsp[-1].state);
 		}
-#line 1162 "ex3.tab.c"
+#line 1169 "ex3.tab.c"
     break;
 
   case 10: /* expr: expr '+' expr  */
@@ -1176,7 +1183,7 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1180 "ex3.tab.c"
+#line 1187 "ex3.tab.c"
     break;
 
   case 11: /* expr: expr '-' expr  */
@@ -1193,7 +1200,7 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1197 "ex3.tab.c"
+#line 1204 "ex3.tab.c"
     break;
 
   case 12: /* expr: expr '*' expr  */
@@ -1211,7 +1218,7 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1215 "ex3.tab.c"
+#line 1222 "ex3.tab.c"
     break;
 
   case 13: /* expr: expr '/' expr  */
@@ -1223,10 +1230,8 @@ yyreduce:
 				char lbl_errordiv[BUFFER_SIZE_MAX];
 				char lbl_end_div[BUFFER_SIZE_MAX];
 				unsigned int ln = new_label_number();
-				
 				create_label(lbl_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "err", "div0", ln);
 				create_label(lbl_end_div, BUFFER_SIZE_MAX, "%s:%s:%u", "fin", "div", ln);
-				
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
 				printf("\tconst cx,%s\n", lbl_errordiv);
@@ -1240,19 +1245,17 @@ yyreduce:
 				printf("\tcallprintfs ax\n");
 				printf("\tend\n");
 				printf(":%s\n", lbl_end_div); // si pas d'erreur ça sort sur ce label qui fait rien
-				
 				(yyval.state) = ARITHMETIC_T;
-				
 			} else {
 				yyerror("[Erreur] '/' de typage");
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1252 "ex3.tab.c"
+#line 1255 "ex3.tab.c"
     break;
 
   case 14: /* expr: expr '%' expr  */
-#line 132 "ex3.y"
+#line 128 "ex3.y"
                                   {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				(yyval.state) = ARITHMETIC_T;
@@ -1267,7 +1270,7 @@ yyreduce:
 				printf("\tconst cx,%s\n", lbl_errordiv);
 				printf("\tdiv ax,bx\n");
 				printf("\tjmpe cx\n");
-				printf("\tcp cx,dx\n");
+				printf("\tcp cx,dx\n"); // copie dans cx de dx qui contient ax pour l'utiliser plustard
 				printf("\tcp dx,bx\n");
 				printf("\tpush ax\n");
 				printf("\tconst ax,%s\n", lbl_end_div);
@@ -1283,18 +1286,16 @@ yyreduce:
 				printf("\tpop ax\n");
 				printf("\tsub cx,ax\n");
 				printf("\tpush cx\n");
-				
-				
 			} else {
 				yyerror("[Erreur] '%%' de typage");
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1294 "ex3.tab.c"
+#line 1295 "ex3.tab.c"
     break;
 
   case 15: /* expr: expr '^' expr  */
-#line 168 "ex3.y"
+#line 162 "ex3.y"
                                   {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				(yyval.state) = ARITHMETIC_T;
@@ -1303,11 +1304,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1307 "ex3.tab.c"
+#line 1308 "ex3.tab.c"
     break;
 
   case 16: /* expr: expr EQ expr  */
-#line 175 "ex3.y"
+#line 169 "ex3.y"
                                  {
 			if (is_same_type(2, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T, BOOLEAN_T)) {
 				(yyval.state) = BOOLEAN_T;
@@ -1316,11 +1317,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE; /* si l'erreur vient de $1, on remonte $1 */
 			}
 		}
-#line 1320 "ex3.tab.c"
+#line 1321 "ex3.tab.c"
     break;
 
   case 17: /* expr: expr NEQ expr  */
-#line 182 "ex3.y"
+#line 176 "ex3.y"
                                   {
 			if (is_same_type(2, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T, BOOLEAN_T)) {
 				// Création d'étiquettes uniques
@@ -1330,22 +1331,19 @@ yyreduce:
 				create_label(buf1, BUFFER_SIZE_MAX, "%s:%u", "saut", ln);
 				create_label(buf2, BUFFER_SIZE_MAX, "%s:%u", "finsaut", ln);
 				
+				// NE FONCTIONNE PAS
 				// on empile 0
 				printf("\tconst bx,0\n");
 				printf("\tpop ax\n");
-				
 				// compare ax, bx
-				printf("\tconst ax,%s\n", buf1);
+				printf("\tconst cx,%s\n", buf1);
 				printf("\tcmp ax,bx\n");
-				
 				printf("\tjmpc cx\n");
-				
 				// si ça vaut 0
 				printf("\tconst ax,0\n");
 				printf("\tpush ax\n");
 				printf("\tconst ax,%s\n", buf2);
 				printf("\tjmp ax\n");
-				
 				printf(":%s\n", buf1);
 				printf("\tconst ax,1\n");
 				printf("\tpush ax\n");
@@ -1356,13 +1354,17 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1360 "ex3.tab.c"
+#line 1358 "ex3.tab.c"
     break;
 
   case 18: /* expr: expr AND expr  */
-#line 216 "ex3.y"
+#line 207 "ex3.y"
                                   {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), BOOLEAN_T)) {
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tand ax,bx\n");
+				printf("\tpush ax\n");
 				(yyval.state) = (yyvsp[-2].state); // $1 = BOOLEAN_T
 			} else if ((yyvsp[-2].state) != BOOLEAN_T) {
 				if ((yyvsp[-2].state) == ARITHMETIC_T) {
@@ -1378,13 +1380,17 @@ yyreduce:
 				}
 			}
 		}
-#line 1382 "ex3.tab.c"
+#line 1384 "ex3.tab.c"
     break;
 
   case 19: /* expr: expr OR expr  */
-#line 232 "ex3.y"
+#line 227 "ex3.y"
                                  {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), BOOLEAN_T)) {
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tor ax,bx\n");
+				printf("\tpush ax\n");
 				(yyval.state) = (yyvsp[-2].state); // $1 = BOOLEAN_T
 			} else if ((yyvsp[-2].state) != BOOLEAN_T) {
 				if ((yyvsp[-2].state) == ARITHMETIC_T) {
@@ -1400,32 +1406,92 @@ yyreduce:
 				}
 			}
 		}
-#line 1404 "ex3.tab.c"
+#line 1410 "ex3.tab.c"
     break;
 
-  case 20: /* expr: NUMBER  */
-#line 248 "ex3.y"
+  case 20: /* expr: expr GT expr  */
+#line 247 "ex3.y"
+                                 {
+			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
+				char lbl_true[BUFFER_SIZE_MAX];
+				char lbl_endtrue[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%s:%u", "gt", "true", ln);
+				create_label(lbl_endtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "gt", "endtrue", ln);
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tconst cx,%s\n", lbl_true);
+				printf("\tsless bx,ax\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf("\tconst cx,%s\n", lbl_endtrue);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_true);
+				printf("\tconst ax,1\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endtrue);
+				(yyval.state) = BOOLEAN_T; // remonte un booléan comme résultat
+			} else {
+				(yyval.state) = ERROR_TYPE;
+			}
+		}
+#line 1440 "ex3.tab.c"
+    break;
+
+  case 21: /* expr: expr LT expr  */
+#line 271 "ex3.y"
+                                 {
+			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
+				char lbl_true[BUFFER_SIZE_MAX];
+				char lbl_endtrue[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%s:%u", "lt", "true", ln);
+				create_label(lbl_endtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "lt", "endtrue", ln);
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tconst cx,%s\n", lbl_true);
+				printf("\tsless ax,bx\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf("\tconst cx,%s\n", lbl_endtrue);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_true);
+				printf("\tconst ax,1\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endtrue);
+				(yyval.state) = BOOLEAN_T;
+			} else {
+				(yyval.state) = ERROR_TYPE;
+			}
+		}
+#line 1470 "ex3.tab.c"
+    break;
+
+  case 22: /* expr: NUMBER  */
+#line 295 "ex3.y"
                            {
 			// Affiche le code asm asipro correspondant
 			printf("\tconst ax,%d\n", (yyvsp[0].integer)); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile, et donc ax n'est plus utilisé et peut pas besoin d'utiliser bx
 			(yyval.state) = ARITHMETIC_T;
 		}
-#line 1415 "ex3.tab.c"
+#line 1481 "ex3.tab.c"
     break;
 
-  case 21: /* expr: BOOLEAN  */
-#line 253 "ex3.y"
+  case 23: /* expr: BOOLEAN  */
+#line 300 "ex3.y"
                             {
 			printf("\tconst ax,%d\n", (yyvsp[0].boolean)); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile
 			(yyval.state) = BOOLEAN_T;
 		}
-#line 1425 "ex3.tab.c"
+#line 1491 "ex3.tab.c"
     break;
 
 
-#line 1429 "ex3.tab.c"
+#line 1495 "ex3.tab.c"
 
       default: break;
     }
@@ -1618,7 +1684,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 259 "ex3.y"
+#line 306 "ex3.y"
 
 	
 int is_same_type(size_t size_args, type_synth $1, type_synth $3, ...) {
