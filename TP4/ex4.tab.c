@@ -96,8 +96,9 @@
 		jmpc, le bit c est positionné (== 1), alors jumpc (écrit dans la doc de asm), pareil pour le bit z
 	*/
 	char lbl_s_errordiv[BUFFER_SIZE_MAX];
+	symbol_table_entry *symbol;
 
-#line 101 "ex4.tab.c"
+#line 102 "ex4.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -539,9 +540,9 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    58,    58,    59,    60,    61,    62,    63,    64,    65,
-      66,    70,    79,   109,   112,   124,   135,   147,   174,   208,
-     215,   243,   271,   292,   313,   337,   361,   366
+       0,    59,    59,    60,    61,    62,    63,    64,    65,    66,
+      67,    71,    80,   105,   108,   120,   131,   143,   170,   204,
+     211,   239,   267,   288,   309,   333,   357,   362
 };
 #endif
 
@@ -1143,37 +1144,37 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* lignes: lignes error '\n'  */
-#line 58 "ex4.y"
+#line 59 "ex4.y"
                                                 { yyerrok; }
-#line 1149 "ex4.tab.c"
+#line 1150 "ex4.tab.c"
     break;
 
   case 3: /* lignes: expr error '\n'  */
-#line 59 "ex4.y"
+#line 60 "ex4.y"
                                                 { yyerrok; }
-#line 1155 "ex4.tab.c"
+#line 1156 "ex4.tab.c"
     break;
 
   case 4: /* lignes: error '\n'  */
-#line 60 "ex4.y"
+#line 61 "ex4.y"
                                                 { yyerrok; }
-#line 1161 "ex4.tab.c"
+#line 1162 "ex4.tab.c"
     break;
 
   case 5: /* lignes: lignes expr '\n'  */
-#line 61 "ex4.y"
+#line 62 "ex4.y"
                                                 { /*printf("%d\n", stack[0]); stack_size = 0;*/ }
-#line 1167 "ex4.tab.c"
+#line 1168 "ex4.tab.c"
     break;
 
   case 7: /* lignes: expr '\n'  */
-#line 63 "ex4.y"
+#line 64 "ex4.y"
                                                         { /*printf("%d\n", stack[0]); stack_size = 0;*/ }
-#line 1173 "ex4.tab.c"
+#line 1174 "ex4.tab.c"
     break;
 
   case 11: /* decl: TYPE ID ';'  */
-#line 70 "ex4.y"
+#line 71 "ex4.y"
                             {
 			printf("déclaration de la variable %s\n", (yyvsp[-1].id));
 			// new_symbol_table_entry($2);
@@ -1184,52 +1185,47 @@ yyreduce:
 			// $$ = BOOLEAN_T;
 			
 		}
-#line 1188 "ex4.tab.c"
+#line 1189 "ex4.tab.c"
     break;
 
   case 12: /* decl: TYPE ID '=' expr ';'  */
-#line 79 "ex4.y"
+#line 80 "ex4.y"
                                          {
 			printf("déclaration et affectation de la variable\n");
 			
 			char *varname = (yyvsp[-3].id);
-			symbol_table_entry *symbol = search_symbol_table(varname);
+			symbol = search_symbol_table(varname);
 			if (symbol == NULL) {
-				printf("c'est null donc c ok!!!\n");
 				symbol = new_symbol_table_entry(varname);
-				symbol->class = (yyvsp[-4].stype);
-				
-				/**
-					* pop bx
-					* const bx,nom_var
-					* storew ax,bx
-					* push ax
-				*/
+				symbol->class = GLOBAL_VARIABLE;
+				symbol->name = varname;
+				symbol->desc[0] = (yyvsp[-4].stype); // le type de la variable dans desc[0] comme c écrit dans types.h
+				char lbl_varname[BUFFER_SIZE_MAX];
+				create_label(lbl_varname, BUFFER_SIZE_MAX, "%s:%s:%u", "var", varname);
+				// réserver de la place pour y stocker la valeur de la variable
+				// il faut que la var à un nom fixe et y'a que le num qui change à demander
 				printf("\tpop bx\n");
-				printf("\tconst bx,%s\n", nom_dulabel); // est ce qu'il faut l'enregistrer dans une liste ?
+				printf("\tconst bx,%s\n", lbl_varname); // est ce qu'il faut l'enregistrer dans une liste ?
 				printf("\tstorew ax,bx\n");
 				printf("\tpush ax\n");
-				
 			} else {
-				printf("nom de variable déja pris !!!\n");
+				fail_with("Erreur, la variable %s existe déja dans la table des symboles !\n", varname);
 			}
-			// réserver de la place pour y stocker la valeur de la variable
-			// printf("\t")
 		}
-#line 1220 "ex4.tab.c"
+#line 1216 "ex4.tab.c"
     break;
 
   case 13: /* expr: '(' expr ')'  */
-#line 109 "ex4.y"
+#line 105 "ex4.y"
                              {
 			/* on fait rien sur la pile sur les parenthèses, on remonte juste l'expression = $2 */
 			(yyval.state) = (yyvsp[-1].state);
 		}
-#line 1229 "ex4.tab.c"
+#line 1225 "ex4.tab.c"
     break;
 
   case 14: /* expr: expr '+' expr  */
-#line 112 "ex4.y"
+#line 108 "ex4.y"
                                   {
 			/* $1 = expr, $2 = '+', $3 = expr */
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
@@ -1243,11 +1239,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1247 "ex4.tab.c"
+#line 1243 "ex4.tab.c"
     break;
 
   case 15: /* expr: expr '-' expr  */
-#line 124 "ex4.y"
+#line 120 "ex4.y"
                                   {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				printf("\tpop bx\n");
@@ -1260,11 +1256,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1264 "ex4.tab.c"
+#line 1260 "ex4.tab.c"
     break;
 
   case 16: /* expr: expr '*' expr  */
-#line 135 "ex4.y"
+#line 131 "ex4.y"
                                   {
 			 /* Si $1 == ERROR || $3 == ERROR pas de multiplication */
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
@@ -1278,11 +1274,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1282 "ex4.tab.c"
+#line 1278 "ex4.tab.c"
     break;
 
   case 17: /* expr: expr '/' expr  */
-#line 147 "ex4.y"
+#line 143 "ex4.y"
                                   {
 			/* $1 = expr, $2 = aucun car pas de non terminal mais un terminal '/', $3 = expr et test division par zéro */
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
@@ -1311,11 +1307,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1315 "ex4.tab.c"
+#line 1311 "ex4.tab.c"
     break;
 
   case 18: /* expr: expr '%' expr  */
-#line 174 "ex4.y"
+#line 170 "ex4.y"
                                   {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				(yyval.state) = ARITHMETIC_T;
@@ -1351,11 +1347,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1355 "ex4.tab.c"
+#line 1351 "ex4.tab.c"
     break;
 
   case 19: /* expr: expr '^' expr  */
-#line 208 "ex4.y"
+#line 204 "ex4.y"
                                   {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				(yyval.state) = ARITHMETIC_T;
@@ -1364,11 +1360,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1368 "ex4.tab.c"
+#line 1364 "ex4.tab.c"
     break;
 
   case 20: /* expr: expr EQ expr  */
-#line 215 "ex4.y"
+#line 211 "ex4.y"
                                  {
 			if (is_same_type(2, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T, BOOLEAN_T)) {
 				
@@ -1398,11 +1394,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE; /* si l'erreur vient de $1, on remonte $1 */
 			}
 		}
-#line 1402 "ex4.tab.c"
+#line 1398 "ex4.tab.c"
     break;
 
   case 21: /* expr: expr NEQ expr  */
-#line 243 "ex4.y"
+#line 239 "ex4.y"
                                   {
 			if (is_same_type(2, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T, BOOLEAN_T)) {
 				
@@ -1432,11 +1428,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1436 "ex4.tab.c"
+#line 1432 "ex4.tab.c"
     break;
 
   case 22: /* expr: expr AND expr  */
-#line 271 "ex4.y"
+#line 267 "ex4.y"
                                   {
 			// example : true && true, true && false 
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), BOOLEAN_T)) {
@@ -1459,11 +1455,11 @@ yyreduce:
 				}
 			}
 		}
-#line 1463 "ex4.tab.c"
+#line 1459 "ex4.tab.c"
     break;
 
   case 23: /* expr: expr OR expr  */
-#line 292 "ex4.y"
+#line 288 "ex4.y"
                                  {
 			// example : true || true, true || false
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), BOOLEAN_T)) {
@@ -1486,11 +1482,11 @@ yyreduce:
 				}
 			}
 		}
-#line 1490 "ex4.tab.c"
+#line 1486 "ex4.tab.c"
     break;
 
   case 24: /* expr: expr GT expr  */
-#line 313 "ex4.y"
+#line 309 "ex4.y"
                                  {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				char lbl_true[BUFFER_SIZE_MAX];
@@ -1516,11 +1512,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1520 "ex4.tab.c"
+#line 1516 "ex4.tab.c"
     break;
 
   case 25: /* expr: expr LT expr  */
-#line 337 "ex4.y"
+#line 333 "ex4.y"
                                  {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				char lbl_true[BUFFER_SIZE_MAX];
@@ -1546,32 +1542,32 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1550 "ex4.tab.c"
+#line 1546 "ex4.tab.c"
     break;
 
   case 26: /* expr: NUMBER  */
-#line 361 "ex4.y"
+#line 357 "ex4.y"
                            {
 			// Affiche le code asm asipro correspondant
 			printf("\tconst ax,%d\n", (yyvsp[0].integer)); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile, et donc ax n'est plus utilisé et peut pas besoin d'utiliser bx
 			(yyval.state) = ARITHMETIC_T;
 		}
-#line 1561 "ex4.tab.c"
+#line 1557 "ex4.tab.c"
     break;
 
   case 27: /* expr: BOOLEAN  */
-#line 366 "ex4.y"
+#line 362 "ex4.y"
                             {
 			printf("\tconst ax,%d\n", (yyvsp[0].boolean)); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile
 			(yyval.state) = BOOLEAN_T;
 		}
-#line 1571 "ex4.tab.c"
+#line 1567 "ex4.tab.c"
     break;
 
 
-#line 1575 "ex4.tab.c"
+#line 1571 "ex4.tab.c"
 
       default: break;
     }
@@ -1764,7 +1760,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 372 "ex4.y"
+#line 368 "ex4.y"
 
 	
 int is_same_type(size_t size_args, type_synth $1, type_synth $3, ...) {
@@ -1889,10 +1885,10 @@ int main(void) {
 	
 	
 	// L'initialisation des variables à zéro
-	printf("init var : %d\n", search_symbol_table("x") == NULL);
-	// pas ouf l'initialisation avec search symbol à vide à demander au prof et est ce qu'il faut faire l'intialisation des variables à la fin ?
-	for (symbol_table_entry *ste = search_symbol_table(" "); ste != NULL; ste = ste->next) {
-		printf("init var, ok c bon peut supprimer\n");
+	// est ce qu'il faut faire l'intialisation des variables à la fin ?
+	for (symbol_table_entry *ste = symbol; ste != NULL; ste = ste->next) {
+		printf(":var:%s\n", ste->name);
+		printf("@int 0\n\n");
 	}
 	
 	

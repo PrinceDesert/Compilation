@@ -26,6 +26,7 @@
 		jmpc, le bit c est positionné (== 1), alors jumpc (écrit dans la doc de asm), pareil pour le bit z
 	*/
 	char lbl_s_errordiv[BUFFER_SIZE_MAX];
+	symbol_table_entry *symbol;
 %}
 %union {
 	int integer;
@@ -80,29 +81,23 @@
 			printf("déclaration et affectation de la variable\n");
 			
 			char *varname = $2;
-			symbol_table_entry *symbol = search_symbol_table(varname);
+			symbol = search_symbol_table(varname);
 			if (symbol == NULL) {
-				printf("c'est null donc c ok!!!\n");
 				symbol = new_symbol_table_entry(varname);
-				symbol->class = $1;
-				
-				/**
-					* pop bx
-					* const bx,nom_var
-					* storew ax,bx
-					* push ax
-				*/
-				// il faut que la var à un nom fixe et y'a que le num qui change
+				symbol->class = GLOBAL_VARIABLE;
+				symbol->name = varname;
+				symbol->desc[0] = $1; // le type de la variable dans desc[0] comme c écrit dans types.h
+				char lbl_varname[BUFFER_SIZE_MAX];
+				create_label(lbl_varname, BUFFER_SIZE_MAX, "%s:%s", "var", varname);
+				// réserver de la place pour y stocker la valeur de la variable
+				// il faut que la var à un nom fixe et y'a que le num qui change à demander
 				printf("\tpop bx\n");
-				printf("\tconst bx,%s\n", nom_dulabel); // est ce qu'il faut l'enregistrer dans une liste ?
+				printf("\tconst bx,%s\n", lbl_varname); // est ce qu'il faut l'enregistrer dans une liste ?
 				printf("\tstorew ax,bx\n");
 				printf("\tpush ax\n");
-				
 			} else {
-				printf("nom de variable déja pris !!!\n");
+				fail_with("Erreur, la variable %s existe déja dans la table des symboles !\n", varname);
 			}
-			// réserver de la place pour y stocker la valeur de la variable
-			// printf("\t")
 		}
 	;
 	
@@ -494,10 +489,10 @@ int main(void) {
 	
 	
 	// L'initialisation des variables à zéro
-	printf("init var : %d\n", search_symbol_table("x") == NULL);
-	// pas ouf l'initialisation avec search symbol à vide à demander au prof et est ce qu'il faut faire l'intialisation des variables à la fin ?
-	for (symbol_table_entry *ste = search_symbol_table(" "); ste != NULL; ste = ste->next) {
-		printf("init var, ok c bon peut supprimer\n");
+	// est ce qu'il faut faire l'intialisation des variables à la fin ?
+	for (symbol_table_entry *ste = symbol; ste != NULL; ste = ste->next) {
+		printf(":var:%s\n", ste->name);
+		printf("@int 0\n\n");
 	}
 	
 	
