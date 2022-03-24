@@ -1,17 +1,3 @@
-/**
-	Fichier flex
-	Étape 1 : Génération du fichier C qui fait fonctionner les automates et le programme 
-		flex -D_POSIX_SOURCE --nounput -DYY_NO_INPUT ex1.l
-	Étape 2 : Création du programme d'analyse lexicale
-		gcc -std=c11 -pedantic -Wall lex.yy.c -lfl
-	Étape 3 : Indication du fichier à analyser de manière lexicale 
-		./a.out  < exemple.txt
-		./a.out  < exemple.c
-		
-	Ne pas appliquer l'étape 1, 2, 3 mais utiliser le Makefile
-	Car ce fichier utilise un fichier(ex1.tab.h) crée par un autre fichier n'a pas encore été crée (par bison = ex1.tab.h)
-	Donc si éxécution des étapes 1, 2, 3 = erreur
-*/
 %{
 	#include <stdio.h>
 	#include <limits.h>
@@ -19,25 +5,93 @@
 	#include "typesynth.h"
 	#include "ex4.tab.h"
 	#include "types.h"
+	static void comment(); // commentaire
 	void string_to_int(int *v, const char *s);
+	unsigned long int numlign = 1;
 %}
+
 %option noyywrap
+
 %%
+"/*"						{ comment(); }
+"//".*						{ /* consomme les commentaires commençant par // puis suivit de n'importe quel(s) caractère(s) */}
+
+
 [[:digit:]]+				{ string_to_int(&yylval.integer, yytext); return NUMBER; /* return NUMBER pour bison */ }
-true						{ yylval.integer = 1; return BOOLEAN; /* return TRUE pour bison */ }
-false						{ yylval.integer = 0; return BOOLEAN; /* return FALSE pour bison */ }
-==							{ return EQ; }
-!= 							{ return NEQ; }
-&&							{ return AND; }
-\|\| 						{ return OR; }
+
 int							{ yylval.stype = INT_T; return TYPE; }
 bool						{ yylval.stype = BOOL_T; return TYPE; }
 void						{ yylval.stype = VOID_T; return TYPE; }
+string						{ yylval.stype = STRING_T; return TYPE; }
+"true"						{ yylval.integer = 1; return BOOLEAN; /* pour bison : true est un booléen */}
+"false"						{ yylval.integer = 0; return BOOLEAN; /* pour bison : false est un booléen */}
+
+"=="						{ return EQ; }
+"!=" 						{ return NEQ; }
+"&&"						{ return AND; }
+"||" 						{ return OR; }
+">"							{ return GT; }
+"<"							{ return LT; }
+";"							{ return ';'; }
+("{"|"<%")					{ return '{'; }
+","							{ return ','; }
+":"							{ return ':'; }
+"="							{ return '='; }
+"("							{ return '('; }
+")"							{ return ')'; }
+("["|"<:")					{ return '['; }
+("]"|":>")					{ return ']'; }
+"."							{ return '.'; }
+"&"							{ return '&'; }
+"!"							{ return '!'; }
+"~"							{ return '~'; }
+"-"							{ return '-'; }
+"+"							{ return '+'; }
+"*"							{ return '*'; }
+"/"							{ return '/'; }
+"%"							{ return '%'; }
+"<"							{ return '<'; }
+">"							{ return '>'; }
+"^"							{ return '^'; }
+"|"							{ return '|'; }
+"?"							{ return '?'; }
+
 [a-zA-Z][a-zA-Z0-9]*		{ sprintf(yylval.id, "%s", yytext); return ID; }
-[[:blank:]]					
-.|\n						{ return yytext[0]; }
+
+[[:blank:]]				{ /* fait rien sur espace*/ }
+[\t\v\f] 				{ }
+\n						{ numlign++; return yytext[0]; }
+.						{ fprintf(stderr, "Erreur, lexique inconnu à la ligne %lu -> %s (taille : %d)\n", numlign, yytext, yyleng); return yytext[0]; }
 %%
 
+/* yywrap : cette fonction est appellé à la fin du fichier, de sorte que vous pouvez pointer vers un autre fichier et de poursuivre l'analyse de son contenu */
+/* Désactiver avec l'option : %option noyywrap */
+/* Dans le makefile, -lfl : utiliser la valeur par défault */
+/*
+int yywrap() {
+	return 1;
+}
+*/
+	
+// Cette fonction est apellé lorsque flex a rencontré un /*
+// et donc comment effectue le traitement de tout ce qu'il y a après le /*
+static void comment() {
+	int c;
+	while ((c = yylex()) != 0) {
+		if (c == '*') {
+			while ((c = yylex()) == '*');
+			if (c == '/') {
+				return;
+			}
+			if (c == 0) {
+				break;
+			}
+		}
+	}
+	fprintf(stderr, "Erreur commentaire : %s (taille : %d)\n", yytext, yyleng);
+	exit(EXIT_FAILURE);
+}
+	
 void string_to_int(int *r, const char *s) {
 	char *p;
 	long v;
@@ -51,5 +105,3 @@ void string_to_int(int *r, const char *s) {
 	}
 	*r = v;
 }
-
-
