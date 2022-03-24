@@ -1,4 +1,4 @@
-; Equals : 19 != 19 = 0, 19 != 18 = 1
+; Not Equals : 19 != 19 = 0, 19 != 18 = 1
 
 	const ax,debut
 	jmp ax
