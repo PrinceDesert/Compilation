@@ -19,13 +19,9 @@
 	void fail_with(const char *format, ...);
 	
 	#define BUFFER_SIZE_MAX 256
-	
 	/**
-		* ToDo : 
-		* ENelver toutes les divisions par zéro, on utilise plus la stack donc tout enlevé à propos de la stack
-		* pour les labels il faut utiliser les fonctions
-		* stack_size plus besoin car là il faut écrire dans un fichier asm que on ouvre dans le main
-		* division par zéro code assembleur qui le gère, le bit z fl positioné à 1, jumpz que si bit z est à 1
+		Dans le code assembleur :
+		jmpc, le bit c est positionné (== 1), alors jumpc (écrit dans la doc de asm), pareil pour le bit z
 	*/
 	char lbl_s_errordiv[BUFFER_SIZE_MAX];
 %}
@@ -39,10 +35,11 @@
 %token<boolean> BOOLEAN /* le boolean est relié à l'union −> boolean */
 %type<state> expr /* le state est relié au champ de l'union state */
 
-/* associativité à gauche et priorité des opérateurs */
+/* associativité à gauche et priorité des opérateurs (page 144 diaporama)*/
 /* EQ = EQUALS, NEQ = NOT EQUALS priorité plus faible */
-%left EQ NEQ GT LT
 %left AND OR
+%left EQ NEQ
+%left GT LT
 %left '+''-'
 %left '*''/''%''^'
 
