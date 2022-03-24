@@ -26,9 +26,14 @@
 ; Résultat de bison
 	const ax,4
 	push ax
-déclaration et affectation de la variable
 	pop bx
-	const bx,var:c:850193408
+	const bx,var:x
+	storew ax,bx
+	push ax
+	const ax,7
+	push ax
+	pop bx
+	const bx,var:c
 	storew ax,bx
 	push ax
 ; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile
@@ -44,6 +49,9 @@ déclaration et affectation de la variable
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Fin de stockage de la zone de pile
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-:var:
+:var:
+@int 0
+
+:var:
 @int 0
 

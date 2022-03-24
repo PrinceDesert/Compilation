@@ -69,20 +69,21 @@
 	
 	decl :
 		TYPE ID ';' {
-			printf("déclaration de la variable %s\n", $2);
+			// printf("déclaration de la variable %s\n", $2);
 			// new_symbol_table_entry($2);
 			// vérifier si ça existe pas déja
 			// et on lui affecte un type
 			// on remplit la structure symbol_table_entry symbol_table_entry->DESC
-			printf("type : %d - name : %s\n", $1, $2);
+			// printf("type : %d - name : %s\n", $1, $2);
 			// $$ = BOOLEAN_T;
 			
 		} | TYPE ID '=' expr ';' {
-			printf("déclaration et affectation de la variable\n");
-			
-			char *varname = $2;
+			char varname[64];
+			sprintf(varname, "%s", $2);
+			if (symbol != NULL && symbol->name != NULL)
+				printf("varname : %s, symbol : %s\n", varname, symbol->name);
 			symbol = search_symbol_table(varname);
-			if (symbol == NULL) {
+			if (symbol == NULL || strncmp(symbol->name, varname, sizeof(char) * strlen(varname)) != 0) {
 				symbol = new_symbol_table_entry(varname);
 				symbol->class = GLOBAL_VARIABLE;
 				symbol->name = varname;
@@ -97,6 +98,9 @@
 				printf("\tpush ax\n");
 			} else {
 				fail_with("Erreur, la variable %s existe déja dans la table des symboles !\n", varname);
+			}
+			if (symbol->next != NULL) {
+				printf("AFFICHER MOI LE SUIVANT NEXT MAIS CA VEUT PAS AFFICHER LE NOM : %s\n", symbol->next->name);
 			}
 		}
 	;
@@ -491,7 +495,7 @@ int main(void) {
 	// L'initialisation des variables à zéro
 	// est ce qu'il faut faire l'intialisation des variables à la fin ?
 	for (symbol_table_entry *ste = symbol; ste != NULL; ste = ste->next) {
-		printf(":var:%s\n", ste->name);
+		printf(":var:%s\n", symbol->name);
 		printf("@int 0\n\n");
 	}
 	
