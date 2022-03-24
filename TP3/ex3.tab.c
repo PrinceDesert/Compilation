@@ -537,8 +537,8 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int16 yyrline[] =
 {
        0,    53,    53,    54,    55,    56,    57,    58,    59,    63,
-      66,    78,    89,   101,   128,   162,   169,   176,   207,   227,
-     247,   271,   295,   300
+      66,    78,    89,   101,   128,   162,   169,   197,   225,   246,
+     267,   291,   315,   320
 };
 #endif
 
@@ -1311,55 +1311,74 @@ yyreduce:
 #line 169 "ex3.y"
                                  {
 			if (is_same_type(2, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T, BOOLEAN_T)) {
+				
+				char lbl_eqtrue[BUFFER_SIZE_MAX];
+				char lbl_endeqtrue[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_eqtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "eq", "true", ln);
+				create_label(lbl_endeqtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "endeq", "true", ln);
+				
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tconst cx,%s\n", lbl_eqtrue);
+				printf("\tcmp ax,bx\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf("\tconst cx,%s\n", lbl_endeqtrue);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_eqtrue);
+				printf("\tconst ax,1\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endeqtrue);
+				
 				(yyval.state) = BOOLEAN_T;
 			} else {
 				yyerror("[Erreur] '==' de typage");
 				(yyval.state) = ERROR_TYPE; /* si l'erreur vient de $1, on remonte $1 */
 			}
 		}
-#line 1321 "ex3.tab.c"
+#line 1342 "ex3.tab.c"
     break;
 
   case 17: /* expr: expr NEQ expr  */
-#line 176 "ex3.y"
+#line 197 "ex3.y"
                                   {
 			if (is_same_type(2, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T, BOOLEAN_T)) {
-				// Création d'étiquettes uniques
-				char buf1[BUFFER_SIZE_MAX];
-				char buf2[BUFFER_SIZE_MAX];
-				unsigned int ln = new_label_number();
-				create_label(buf1, BUFFER_SIZE_MAX, "%s:%u", "saut", ln);
-				create_label(buf2, BUFFER_SIZE_MAX, "%s:%u", "finsaut", ln);
 				
-				// NE FONCTIONNE PAS
-				// on empile 0
-				printf("\tconst bx,0\n");
+				char lbl_neqfalse[BUFFER_SIZE_MAX];
+				char lbl_endneqfalse[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_neqfalse, BUFFER_SIZE_MAX, "%s:%s:%u", "neq", "false", ln);
+				create_label(lbl_endneqfalse, BUFFER_SIZE_MAX, "%s:%s:%u", "endneq", "false", ln);
+				
+				printf("\tpop bx\n");
 				printf("\tpop ax\n");
-				// compare ax, bx
-				printf("\tconst cx,%s\n", buf1);
+				printf("\tconst cx,%s\n", lbl_neqfalse);
 				printf("\tcmp ax,bx\n");
 				printf("\tjmpc cx\n");
-				// si ça vaut 0
-				printf("\tconst ax,0\n");
-				printf("\tpush ax\n");
-				printf("\tconst ax,%s\n", buf2);
-				printf("\tjmp ax\n");
-				printf(":%s\n", buf1);
 				printf("\tconst ax,1\n");
 				printf("\tpush ax\n");
-				printf(":%s\n", buf2);
+				printf("\tconst cx,%s\n", lbl_endneqfalse);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_neqfalse);
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endneqfalse);
+				
 				(yyval.state) = BOOLEAN_T;
 			} else {
 				yyerror("[Erreur] '!=' de typage");
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1358 "ex3.tab.c"
+#line 1376 "ex3.tab.c"
     break;
 
   case 18: /* expr: expr AND expr  */
-#line 207 "ex3.y"
+#line 225 "ex3.y"
                                   {
+			// example : true && true, true && false 
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), BOOLEAN_T)) {
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
@@ -1380,12 +1399,13 @@ yyreduce:
 				}
 			}
 		}
-#line 1384 "ex3.tab.c"
+#line 1403 "ex3.tab.c"
     break;
 
   case 19: /* expr: expr OR expr  */
-#line 227 "ex3.y"
+#line 246 "ex3.y"
                                  {
+			// example : true || true, true || false
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), BOOLEAN_T)) {
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
@@ -1406,11 +1426,11 @@ yyreduce:
 				}
 			}
 		}
-#line 1410 "ex3.tab.c"
+#line 1430 "ex3.tab.c"
     break;
 
   case 20: /* expr: expr GT expr  */
-#line 247 "ex3.y"
+#line 267 "ex3.y"
                                  {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				char lbl_true[BUFFER_SIZE_MAX];
@@ -1436,11 +1456,11 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1440 "ex3.tab.c"
+#line 1460 "ex3.tab.c"
     break;
 
   case 21: /* expr: expr LT expr  */
-#line 271 "ex3.y"
+#line 291 "ex3.y"
                                  {
 			if (is_same_type(1, (yyvsp[-2].state), (yyvsp[0].state), ARITHMETIC_T)) {
 				char lbl_true[BUFFER_SIZE_MAX];
@@ -1466,32 +1486,32 @@ yyreduce:
 				(yyval.state) = ERROR_TYPE;
 			}
 		}
-#line 1470 "ex3.tab.c"
+#line 1490 "ex3.tab.c"
     break;
 
   case 22: /* expr: NUMBER  */
-#line 295 "ex3.y"
+#line 315 "ex3.y"
                            {
 			// Affiche le code asm asipro correspondant
 			printf("\tconst ax,%d\n", (yyvsp[0].integer)); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile, et donc ax n'est plus utilisé et peut pas besoin d'utiliser bx
 			(yyval.state) = ARITHMETIC_T;
 		}
-#line 1481 "ex3.tab.c"
+#line 1501 "ex3.tab.c"
     break;
 
   case 23: /* expr: BOOLEAN  */
-#line 300 "ex3.y"
+#line 320 "ex3.y"
                             {
 			printf("\tconst ax,%d\n", (yyvsp[0].boolean)); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile
 			(yyval.state) = BOOLEAN_T;
 		}
-#line 1491 "ex3.tab.c"
+#line 1511 "ex3.tab.c"
     break;
 
 
-#line 1495 "ex3.tab.c"
+#line 1515 "ex3.tab.c"
 
       default: break;
     }
@@ -1684,7 +1704,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 306 "ex3.y"
+#line 326 "ex3.y"
 
 	
 int is_same_type(size_t size_args, type_synth $1, type_synth $3, ...) {

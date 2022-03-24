@@ -168,6 +168,27 @@
 			}
 		} | expr EQ expr {
 			if (is_same_type(2, $1, $3, ARITHMETIC_T, BOOLEAN_T)) {
+				
+				char lbl_eqtrue[BUFFER_SIZE_MAX];
+				char lbl_endeqtrue[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_eqtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "eq", "true", ln);
+				create_label(lbl_endeqtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "endeq", "true", ln);
+				
+				printf("\tpop bx\n");
+				printf("\tpop ax\n");
+				printf("\tconst cx,%s\n", lbl_eqtrue);
+				printf("\tcmp ax,bx\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf("\tconst cx,%s\n", lbl_endeqtrue);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_eqtrue);
+				printf("\tconst ax,1\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endeqtrue);
+				
 				$$ = BOOLEAN_T;
 			} else {
 				yyerror("[Erreur] '==' de typage");
@@ -175,30 +196,27 @@
 			}
 		} | expr NEQ expr {
 			if (is_same_type(2, $1, $3, ARITHMETIC_T, BOOLEAN_T)) {
-				// Création d'étiquettes uniques
-				char buf1[BUFFER_SIZE_MAX];
-				char buf2[BUFFER_SIZE_MAX];
-				unsigned int ln = new_label_number();
-				create_label(buf1, BUFFER_SIZE_MAX, "%s:%u", "saut", ln);
-				create_label(buf2, BUFFER_SIZE_MAX, "%s:%u", "finsaut", ln);
 				
-				// NE FONCTIONNE PAS
-				// on empile 0
-				printf("\tconst bx,0\n");
+				char lbl_neqfalse[BUFFER_SIZE_MAX];
+				char lbl_endneqfalse[BUFFER_SIZE_MAX];
+				unsigned int ln = new_label_number();
+				create_label(lbl_neqfalse, BUFFER_SIZE_MAX, "%s:%s:%u", "neq", "false", ln);
+				create_label(lbl_endneqfalse, BUFFER_SIZE_MAX, "%s:%s:%u", "endneq", "false", ln);
+				
+				printf("\tpop bx\n");
 				printf("\tpop ax\n");
-				// compare ax, bx
-				printf("\tconst cx,%s\n", buf1);
+				printf("\tconst cx,%s\n", lbl_neqfalse);
 				printf("\tcmp ax,bx\n");
 				printf("\tjmpc cx\n");
-				// si ça vaut 0
-				printf("\tconst ax,0\n");
-				printf("\tpush ax\n");
-				printf("\tconst ax,%s\n", buf2);
-				printf("\tjmp ax\n");
-				printf(":%s\n", buf1);
 				printf("\tconst ax,1\n");
 				printf("\tpush ax\n");
-				printf(":%s\n", buf2);
+				printf("\tconst cx,%s\n", lbl_endneqfalse);
+				printf("\tjmp cx\n");
+				printf(":%s\n", lbl_neqfalse);
+				printf("\tconst ax,0\n");
+				printf("\tpush ax\n");
+				printf(":%s\n", lbl_endneqfalse);
+				
 				$$ = BOOLEAN_T;
 			} else {
 				yyerror("[Erreur] '!=' de typage");

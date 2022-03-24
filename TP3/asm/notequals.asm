@@ -1,4 +1,4 @@
-; Exercice 1
+; Equals : 19 != 19 = 0, 19 != 18 = 1
 
 	const ax,debut
 	jmp ax
@@ -13,23 +13,23 @@
 	const ax,2
 	sub sp,ax
 ; Résultat de bison
-	const ax,4
+	const ax,19
 	push ax
-	const ax,4
+	const ax,18
 	push ax
 	pop bx
 	pop ax
-	const cx,neq:false:1
+	const cx,neq:false
 	cmp ax,bx
 	jmpc cx
 	const ax,1
 	push ax
-	const cx,endneq:false:1
+	const cx,endneq:false
 	jmp cx
-:neq:false:1
+:neq:false
 	const ax,0
 	push ax
-:endneq:false:1
+:endneq:false
 ; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile
 	cp ax,sp
 	callprintfd ax
