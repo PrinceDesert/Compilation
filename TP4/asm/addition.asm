@@ -1,4 +1,4 @@
-; Exercice 1 : addition
+; Exercice : Addition
 	const ax,debut
 	jmp ax
 :debut

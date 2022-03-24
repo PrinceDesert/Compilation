@@ -61,6 +61,7 @@
 		| lignes expr '\n'		{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
 		| lignes '\n'
 		| expr '\n'				{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
+		| lignes decl '\n'
 		| decl '\n'
 		| '\n'
 	;
@@ -78,6 +79,30 @@
 		} | TYPE ID '=' expr ';' {
 			printf("déclaration et affectation de la variable\n");
 			
+			char *varname = $2;
+			symbol_table_entry *symbol = search_symbol_table(varname);
+			if (symbol == NULL) {
+				printf("c'est null donc c ok!!!\n");
+				symbol = new_symbol_table_entry(varname);
+				symbol->class = $1;
+				
+				/**
+					* pop bx
+					* const bx,nom_var
+					* storew ax,bx
+					* push ax
+				*/
+				// il faut que la var à un nom fixe et y'a que le num qui change
+				printf("\tpop bx\n");
+				printf("\tconst bx,%s\n", nom_dulabel); // est ce qu'il faut l'enregistrer dans une liste ?
+				printf("\tstorew ax,bx\n");
+				printf("\tpush ax\n");
+				
+			} else {
+				printf("nom de variable déja pris !!!\n");
+			}
+			// réserver de la place pour y stocker la valeur de la variable
+			// printf("\t")
 		}
 	;
 	
@@ -407,17 +432,38 @@ void fail_with(const char *format, ...) {
 int main(void) {
 	
 	// Génère les instructions du début pour l'asm asipro avant l'analyse grammaticale
-	printf("; Exercice 1\n\n");
+	printf("; Généré sur bison\n\n");
+	
+	printf("; Permet de passer la zone de stockage des constantes\n");
 	printf("\tconst ax,debut\n");
 	printf("\tjmp ax\n");
 	
-	// Déclarations des strings qui peuvent être utiliser
+	// Déclarations des constantes (strings, int) qui peuvent être utiliser
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Début de la zone de stockage des constantes\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	
+	// String pour division par zéro
 	create_label(lbl_s_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "s_err", "div0", new_label_number());
 	printf("\n");
 	printf(":%s\n", lbl_s_errordiv);
 	printf("@string \"Erreur de division par 0\\n\"\n");
 	printf("\n");
 	
+	
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Fin de la zone de stockage des constantes\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n");
+	
+	/*
+	printf(";;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Début réel du code\n");
+	printf(";;;;;;;;;;;;;;;;;;;;\n");
+	*/
+	
+	printf(";;;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Fonction principale\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;\n");
 	printf(":debut\n");
 	printf("; Préparation de la pile\n");
 	printf("\tconst bp,pile\n"); // bp : fond de la pile
@@ -434,9 +480,26 @@ int main(void) {
 	printf("\tcp ax,sp\n");
 	printf("\tcallprintfd ax\n");
 	printf("\tend\n");
-	printf("; La zone de pile\n");
+	printf("\n");
+	
+	
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Début de stockage de la zone de pile\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	printf(":pile\n");
 	printf("@int 0\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Fin de stockage de la zone de pile\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	
+	
+	// L'initialisation des variables à zéro
+	printf("init var : %d\n", search_symbol_table("x") == NULL);
+	// pas ouf l'initialisation avec search symbol à vide à demander au prof et est ce qu'il faut faire l'intialisation des variables à la fin ?
+	for (symbol_table_entry *ste = search_symbol_table(" "); ste != NULL; ste = ste->next) {
+		printf("init var, ok c bon peut supprimer\n");
+	}
+	
 	
 	return EXIT_SUCCESS;
 }
