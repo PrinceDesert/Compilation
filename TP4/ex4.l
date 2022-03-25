@@ -2,9 +2,9 @@
 	#include <stdio.h>
 	#include <limits.h>
 	#include <stdbool.h>
-	#include "typesynth.h"
-	#include "ex4.tab.h"
+	#include "typesynth_expression.h"
 	#include "types.h"
+	#include "ex4.tab.h"
 	static void comment(); // commentaire
 	void string_to_int(int *v, const char *s);
 	unsigned long int numlign = 1;
@@ -19,12 +19,17 @@
 
 [[:digit:]]+				{ string_to_int(&yylval.integer, yytext); return NUMBER; /* return NUMBER pour bison */ }
 
-int							{ yylval.stype = INT_T; return TYPE; }
-bool						{ yylval.stype = BOOL_T; return TYPE; }
-void						{ yylval.stype = VOID_T; return TYPE; }
-string						{ yylval.stype = STRING_T; return TYPE; }
+"int"						{ yylval.stype = INT_T; return TYPE; }
+"bool"						{ yylval.stype = BOOL_T; return TYPE; }
+"void"						{ yylval.stype = VOID_T; return TYPE; }
+"string"					{ yylval.stype = STRING_T; return TYPE; }
 "true"						{ yylval.integer = 1; return BOOLEAN; /* pour bison : true est un booléen */}
 "false"						{ yylval.integer = 0; return BOOLEAN; /* pour bison : false est un booléen */}
+
+"if"						{ return IF;  }
+"else"						{ return ELSE; }
+"for"						{ return FOR; }
+"while"						{ return WHILE; }
 
 "=="						{ return EQ; }
 "!=" 						{ return NEQ; }
@@ -50,8 +55,6 @@ string						{ yylval.stype = STRING_T; return TYPE; }
 "*"							{ return '*'; }
 "/"							{ return '/'; }
 "%"							{ return '%'; }
-"<"							{ return '<'; }
-">"							{ return '>'; }
 "^"							{ return '^'; }
 "|"							{ return '|'; }
 "?"							{ return '?'; }

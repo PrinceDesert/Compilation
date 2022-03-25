@@ -9,7 +9,7 @@ LDFLAGS=-lfl -lm
 # --DYY_NO_INPUT: ne prend pas en compte la fonction input() inutile
 # -D_POSIX_SOURCE: déclare la fonction fileno()
 LEXOPTS=-D_POSIX_SOURCE -DYY_NO_INPUT --nounput
-YACCOPTS=
+YACCOPTS=-Wcounterexamples
 
 PROG=ex4
 
@@ -29,4 +29,4 @@ $(PROG).tab.c $(PROG).tab.h: $(PROG).y lex.yy.h
 	$(CC) -DYYDEBUG $(CFLAGS) $< -c
 
 clean:
-	-rm $(PROG) *.o lex.yy.* $(PROG).tab.* *.err *.output *.out *.dot
+	-rm $(PROG) *.o lex.yy.* $(PROG).tab.* *.err *.output *.out *.dot *.gv

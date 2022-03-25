@@ -7,14 +7,16 @@
 	#include <string.h>
 	#include <math.h>
 	#include <limits.h>
-	#include "typesynth.h"
+	#include "typesynth_expression.h"
+	#include "types.h"
 	#include "stable.h"
 	
 	int yylex(void);
 	void yyerror(char const *);
 	
+	void get_symbol_from_type_synth_expression(symbol_type *symbol, type_synth_expression *tse);
 	// Check type
-	int is_same_type(size_t size_args, type_synth $1, type_synth $3, ...); /* $1 == BOOLEAN_T && $3 == BOOLEAN_T && value == BOOLEAN_T*/
+	int is_same_type(size_t size_args, type_synth_expression $1, type_synth_expression $3, ...); /* $1 == T_BOOLEAN && $3 == T_BOOLEAN && value == T_BOOLEAN*/
 	// Label asm
 	static unsigned int new_label_number();
 	static void create_label(char *buf, size_t buf_size, const char *format, ...);
@@ -27,13 +29,37 @@
 	*/
 	char lbl_s_errordiv[BUFFER_SIZE_MAX];
 	symbol_table_entry *symbol;
+	
+	/**
+		* utiliser la pile du tp2 stack_size
+	*/
+	#define STACK_CAPACITY 4096
+	static int stack[STACK_CAPACITY];
+	static size_t stack_size = 0;
+	
+	
+	/**
+	 * pour une fonction factorielle 3
+	 * empile 3 en haut de la pile
+	 * push ax
+	 * const dx,factorielle
+	 * call
+	 * ret retour au départ
+	 * dans factorielle
+	 * cp cx,sp
+	 * const bx,2
+	 * sub cx,bx -> permet de se retrouver sur l'argument de la pile
+	*/
+	
 %}
 %union {
 	int integer;
 	bool boolean;
-	type_synth state; /* conserve pour les erreurs de typage */
+	type_synth_expression state; /* conserve pour les erreurs de typage */
 	char id[64]; /* nom de la variable */
-	type_synth stype;
+	symbol_type stype;
+	type_synth_expression selection_state;
+	type_synth_expression iteration_state;
 }
 
 %token<integer> NUMBER /* le integer est relié à l'union -> integer repéré par flex */
@@ -41,8 +67,14 @@
 %token<id> ID /* on les met en token car pas de on écrit pas de règle sur ce type */
 %token<stype> TYPE
 
-/* Tuto : pour utiliser le $$ comme dans expr, il faut le déclarer en tant que type */ 
-%type<state> expr /* le state est relié au champ de l'union state */
+%token IF ELSE FOR WHILE
+
+/* Tuto : pour utiliser le $$ comme dans expression, il faut le déclarer en tant que type */ 
+%type<state> expression /* le state est relié au champ de l'union state */
+%type<state> declaration
+%type<state> statement
+%type<selection_state> selection_statement
+%type<iteration_state> iteration_statement
 
 /* associativité à gauche et priorité des opérateurs (page 144 diaporama)*/
 /* EQ = EQUALS, NEQ = NOT EQUALS priorité plus faible */
@@ -57,17 +89,88 @@
 %%
 	lignes :
 		lignes error '\n'		{ yyerrok; }
-		| expr error '\n'		{ yyerrok; }
+		| expression error '\n'		{ yyerrok; }
 		| error '\n'			{ yyerrok; }
-		| lignes expr '\n'		{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
+		| lignes expression '\n'		{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
 		| lignes '\n'
-		| expr '\n'				{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
-		| lignes decl '\n'
-		| decl '\n'
+		| expression '\n'				{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
+		| lignes declaration '\n'
+		| statement_list '\n'
+		| declaration '\n'
 		| '\n'
 	;
 	
-	decl :
+	statement_list : statement | statement_list statement ;
+	statement :
+		IF '(' expression ')' statement {
+			/* expr doit etre booléen */
+			printf("if recognize\n");
+			if ($3 == T_BOOLEAN) {
+				// unsigned int ln = new_label_number();
+				stack[stack_size++] = new_label_number();
+				--stack_size;
+				
+				char lbl_if[BUFFER_SIZE_MAX];
+				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "if", ln);
+				
+				
+				printf("\tpop ax\n");
+				// si ax true alors fait le if
+				// sinon fait pas 
+				
+				$$ = T_BOOLEAN;
+			} else {
+				yyerror("[Erreur] IF expr pas booléen");
+				$$ = ERROR_TYPE;
+			}
+			
+		} | IF '(' expression ')' statement ELSE statement {
+			printf("ok\n");
+		}
+	;
+	
+	selection_statement :
+		IF '(' expression ')' statement ELSE statement {
+			
+		} | IF '(' expression ')' statement {
+			/* expression doit etre booléen */
+			printf("if recognize\n");
+			if ($3 == T_BOOLEAN) {
+				unsigned int ln = new_label_number();
+				stack[stack_size++] = ln;
+				--stack_size;
+				
+				char lbl_if[BUFFER_SIZE_MAX];
+				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "if", ln);
+				
+				
+				printf("\tpop ax\n");
+				// si ax true alors fait le if
+				// sinon fait pas 
+				
+				$$ = T_BOOLEAN;
+			} else {
+				yyerror("[Erreur] IF expression pas booléen");
+				$$ = ERROR_TYPE;
+			}
+			
+		}
+	;
+	
+	iteration_statement
+		: WHILE '(' expression ')' statement
+		| FOR '(' expression_statement expression_statement ')' statement
+		| FOR '(' expression_statement expression_statement expression ')' statement
+		;
+	
+	expression_statement 
+		: ';'
+		| expression ';'
+		;
+	
+	
+	
+	declaration :
 		TYPE ID ';' {
 			// printf("déclaration de la variable %s\n", $2);
 			// new_symbol_table_entry($2);
@@ -75,78 +178,84 @@
 			// et on lui affecte un type
 			// on remplit la structure symbol_table_entry symbol_table_entry->DESC
 			// printf("type : %d - name : %s\n", $1, $2);
-			// $$ = BOOLEAN_T;
+			// $$ = T_BOOLEAN;
 			
-		} | TYPE ID '=' expr ';' {
-			char varname[64];
-			sprintf(varname, "%s", $2);
-			if (symbol != NULL && symbol->name != NULL)
-				printf("varname : %s, symbol : %s\n", varname, symbol->name);
-			symbol = search_symbol_table(varname);
-			if (symbol == NULL || strncmp(symbol->name, varname, sizeof(char) * strlen(varname)) != 0) {
-				symbol = new_symbol_table_entry(varname);
-				symbol->class = GLOBAL_VARIABLE;
-				symbol->name = varname;
-				symbol->desc[0] = $1; // le type de la variable dans desc[0] comme c écrit dans types.h
-				char lbl_varname[BUFFER_SIZE_MAX];
-				create_label(lbl_varname, BUFFER_SIZE_MAX, "%s:%s", "var", varname);
-				// réserver de la place pour y stocker la valeur de la variable
-				// il faut que la var à un nom fixe et y'a que le num qui change à demander
-				printf("\tpop bx\n");
-				printf("\tconst bx,%s\n", lbl_varname); // est ce qu'il faut l'enregistrer dans une liste ?
-				printf("\tstorew ax,bx\n");
-				printf("\tpush ax\n");
+		} | TYPE ID '=' expression ';' {
+			// TYPE : types.h
+			// expression : typesynth_expressionession.h
+			// -> get_symbol_from_type_synth_expression
+			type_synth_expression tse = $4;
+			symbol_type *s = malloc(sizeof(symbol_type));
+			get_symbol_from_type_synth_expression(s, &tse);
+			
+			if (COMPATIBLE_TYPES($1, *s)) {
+				char varname[64];
+				sprintf(varname, "%s", $2);
+				symbol = search_symbol_table(varname);
+				if (symbol == NULL || strncmp(symbol->name, varname, sizeof(char) * strlen(varname)) != 0) {
+					symbol = new_symbol_table_entry(varname);
+					symbol->class = GLOBAL_VARIABLE;
+					symbol->desc[0] = $1; // le type de la variable dans desc[0] comme c écrit dans types.h
+					char lbl_varname[BUFFER_SIZE_MAX];
+					create_label(lbl_varname, BUFFER_SIZE_MAX, "%s:%s", "var", varname);
+					printf("\tpop bx\n");
+					printf("\tconst bx,%s\n", lbl_varname); // est ce qu'il faut l'enregistrer dans une liste ?
+					printf("\tstorew ax,bx\n");
+					printf("\tpush ax\n");
+					$$ = $4;
+				} else {
+					fail_with("Erreur, la variable %s existe déja dans la table des symboles !\n", varname);
+				}
 			} else {
-				fail_with("Erreur, la variable %s existe déja dans la table des symboles !\n", varname);
+				yyerror("[Erreur] déclaration, erreur de typage");
+				$$ = ERROR_TYPE;
 			}
-			if (symbol->next != NULL) {
-				printf("AFFICHER MOI LE SUIVANT NEXT MAIS CA VEUT PAS AFFICHER LE NOM : %s\n", symbol->next->name);
-			}
+			free(s);
 		}
 	;
 	
-	expr :
-		'(' expr ')' {
-			/* on fait rien sur la pile sur les parenthèses, on remonte juste l'expression = $2 */
+	expression :
+		'(' expression ')' {
+			/* on fait rien sur la pile sur les parenthèses, on remonte juste l'expressionession = $2 */
 			$$ = $2;
-		} | expr '+' expr {
-			/* $1 = expr, $2 = '+', $3 = expr */
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+		} | expression '+' expression {
+			/* $1 = expression, $2 = '+', $3 = expression */
+			if (is_same_type(1, $1, $3, T_INT)) {
 				printf("\tpop ax\n"); // dépile la pile dont la valeur est mise dans ax
 				printf("\tpop bx\n"); // dépile la pile dont la valeur est mise dans bx
 				printf("\tadd ax,bx\n"); // fait le plus de ax+bx que on met sur ax
 				printf("\tpush ax\n"); // push ax sur la pile qui a le nouveau résultat
-				$$ = ARITHMETIC_T;
+				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '+' de typage");
 				$$ = ERROR_TYPE;
 			}
-		} | expr '-' expr {
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+		} | expression '-' expression {
+			if (is_same_type(1, $1, $3, T_INT)) {
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
 				printf("\tsub ax,bx\n");
 				printf("\tpush ax\n");
-				$$ = ARITHMETIC_T;
+				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '*' de typage");
 				$$ = ERROR_TYPE;
 			}
-		} | expr '*' expr {
+		} | expression '*' expression {
 			 /* Si $1 == ERROR || $3 == ERROR pas de multiplication */
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+			if (is_same_type(1, $1, $3, T_INT)) {
 				printf("\tpop ax\n");
 				printf("\tpop bx\n");
 				printf("\tmul ax,bx\n");
 				printf("\tpush ax\n");
-				$$ = ARITHMETIC_T;
+				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '*' de typage");
 				$$ = ERROR_TYPE;
 			}
-		} | expr '/' expr {
-			/* $1 = expr, $2 = aucun car pas de non terminal mais un terminal '/', $3 = expr et test division par zéro */
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+		} | expression '/' expression {
+			/* $1 = expression, $2 = aucun car pas de non terminal mais un terminal '/', $3 = expression et test division par zéro */
+			if (is_same_type(1, $1, $3, T_INT)) {
 				// Création d'étiquettes uniques
 				char lbl_errordiv[BUFFER_SIZE_MAX];
 				char lbl_end_div[BUFFER_SIZE_MAX];
@@ -166,14 +275,14 @@
 				printf("\tcallprintfs ax\n");
 				printf("\tend\n");
 				printf(":%s\n", lbl_end_div); // si pas d'erreur ça sort sur ce label qui fait rien
-				$$ = ARITHMETIC_T;
+				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '/' de typage");
 				$$ = ERROR_TYPE;
 			}
-		} | expr '%' expr {
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
-				$$ = ARITHMETIC_T;
+		} | expression '%' expression {
+			if (is_same_type(1, $1, $3, T_INT)) {
+				$$ = T_INT;
 				char lbl_errordiv[BUFFER_SIZE_MAX];
 				char lbl_end_div[BUFFER_SIZE_MAX];
 				unsigned int ln = new_label_number();
@@ -205,15 +314,15 @@
 				yyerror("[Erreur] '%%' de typage");
 				$$ = ERROR_TYPE;
 			}
-		} | expr '^' expr {
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
-				$$ = ARITHMETIC_T;
+		} | expression '^' expression {
+			if (is_same_type(1, $1, $3, T_INT)) {
+				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '^' de typage");
 				$$ = ERROR_TYPE;
 			}
-		} | expr EQ expr {
-			if (is_same_type(2, $1, $3, ARITHMETIC_T, BOOLEAN_T)) {
+		} | expression EQ expression {
+			if (is_same_type(2, $1, $3, T_INT, T_BOOLEAN)) {
 				
 				char lbl_eqtrue[BUFFER_SIZE_MAX];
 				char lbl_endeqtrue[BUFFER_SIZE_MAX];
@@ -235,13 +344,13 @@
 				printf("\tpush ax\n");
 				printf(":%s\n", lbl_endeqtrue);
 				
-				$$ = BOOLEAN_T;
+				$$ = T_BOOLEAN;
 			} else {
 				yyerror("[Erreur] '==' de typage");
 				$$ = ERROR_TYPE; /* si l'erreur vient de $1, on remonte $1 */
 			}
-		} | expr NEQ expr {
-			if (is_same_type(2, $1, $3, ARITHMETIC_T, BOOLEAN_T)) {
+		} | expression NEQ expression {
+			if (is_same_type(2, $1, $3, T_INT, T_BOOLEAN)) {
 				
 				char lbl_neqfalse[BUFFER_SIZE_MAX];
 				char lbl_endneqfalse[BUFFER_SIZE_MAX];
@@ -263,55 +372,55 @@
 				printf("\tpush ax\n");
 				printf(":%s\n", lbl_endneqfalse);
 				
-				$$ = BOOLEAN_T;
+				$$ = T_BOOLEAN;
 			} else {
 				yyerror("[Erreur] '!=' de typage");
 				$$ = ERROR_TYPE;
 			}
-		} | expr AND expr {
+		} | expression AND expression {
 			// example : true && true, true && false 
-			if (is_same_type(1, $1, $3, BOOLEAN_T)) {
+			if (is_same_type(1, $1, $3, T_BOOLEAN)) {
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
 				printf("\tand ax,bx\n");
 				printf("\tpush ax\n");
-				$$ = $1; // $1 = BOOLEAN_T
-			} else if ($1 != BOOLEAN_T) {
-				if ($1 == ARITHMETIC_T) {
+				$$ = $1; // $1 = T_BOOLEAN
+			} else if ($1 != T_BOOLEAN) {
+				if ($1 == T_INT) {
 					$$ = ERROR_TYPE;
 				} else {
-					$$ = $1; // = ARITHMETIC_T
+					$$ = $1; // = T_INT
 				}
 			} else {
-				if ($3 == ARITHMETIC_T) {
+				if ($3 == T_INT) {
 					$$ = ERROR_TYPE;
 				} else {
-					$$ = $3; // = ARITHMETIC_T
+					$$ = $3; // = T_INT
 				}
 			}
-		} | expr OR expr {
+		} | expression OR expression {
 			// example : true || true, true || false
-			if (is_same_type(1, $1, $3, BOOLEAN_T)) {
+			if (is_same_type(1, $1, $3, T_BOOLEAN)) {
 				printf("\tpop bx\n");
 				printf("\tpop ax\n");
 				printf("\tor ax,bx\n");
 				printf("\tpush ax\n");
-				$$ = $1; // $1 = BOOLEAN_T
-			} else if ($1 != BOOLEAN_T) {
-				if ($1 == ARITHMETIC_T) {
+				$$ = $1; // $1 = T_BOOLEAN
+			} else if ($1 != T_BOOLEAN) {
+				if ($1 == T_INT) {
 					$$ = ERROR_TYPE;
 				} else {
-					$$ = $1; // = ARITHMETIC_T
+					$$ = $1; // = T_INT
 				}
 			} else {
-				if ($3 == ARITHMETIC_T) {
+				if ($3 == T_INT) {
 					$$ = ERROR_TYPE;
 				} else {
-					$$ = $3; // = ARITHMETIC_T
+					$$ = $3; // = T_INT
 				}
 			}
-		} | expr GT expr {
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+		} | expression GT expression {
+			if (is_same_type(1, $1, $3, T_INT)) {
 				char lbl_true[BUFFER_SIZE_MAX];
 				char lbl_endtrue[BUFFER_SIZE_MAX];
 				unsigned int ln = new_label_number();
@@ -330,12 +439,12 @@
 				printf("\tconst ax,1\n");
 				printf("\tpush ax\n");
 				printf(":%s\n", lbl_endtrue);
-				$$ = BOOLEAN_T; // remonte un booléan comme résultat
+				$$ = T_BOOLEAN; // remonte un booléan comme résultat
 			} else {
 				$$ = ERROR_TYPE;
 			}
-		} | expr LT expr {
-			if (is_same_type(1, $1, $3, ARITHMETIC_T)) {
+		} | expression LT expression {
+			if (is_same_type(1, $1, $3, T_INT)) {
 				char lbl_true[BUFFER_SIZE_MAX];
 				char lbl_endtrue[BUFFER_SIZE_MAX];
 				unsigned int ln = new_label_number();
@@ -354,7 +463,7 @@
 				printf("\tconst ax,1\n");
 				printf("\tpush ax\n");
 				printf(":%s\n", lbl_endtrue);
-				$$ = BOOLEAN_T;
+				$$ = T_BOOLEAN;
 			} else {
 				$$ = ERROR_TYPE;
 			}
@@ -362,22 +471,37 @@
 			// Affiche le code asm asipro correspondant
 			printf("\tconst ax,%d\n", $1); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile, et donc ax n'est plus utilisé et peut pas besoin d'utiliser bx
-			$$ = ARITHMETIC_T;
+			$$ = T_INT;
 		} | BOOLEAN {
 			printf("\tconst ax,%d\n", $1); // met la valeur dans le registre ax
 			printf("\tpush ax\n"); // Push sur la pile
-			$$ = BOOLEAN_T;
+			$$ = T_BOOLEAN;
 		}
 	;
 %%
+
+/**
+ * Comme dans la conception, j'ai décidé de séparé les types expressionessions
+ * de ce des symboles d'une déclaration (ex : une erreur de type)
+ * cette fonction sert à récupèrer le type de symbole du type de l'expressionession
+*/
+void get_symbol_from_type_synth_expression(symbol_type *symbol, type_synth_expression *tse) {
+	if (tse == NULL) return;
+	if (symbol == NULL) return;
+	if (*tse == T_INT) {
+		*symbol = INT_T_LVALUE;
+	} else if (*tse == T_BOOLEAN) {
+		*symbol = BOOL_T_LVALUE;
+	}
+}
 	
-int is_same_type(size_t size_args, type_synth $1, type_synth $3, ...) {
+int is_same_type(size_t size_args, type_synth_expression $1, type_synth_expression $3, ...) {
 	va_list args;
 	va_start(args, $3);
 	int found = 0;
-	type_synth type;
+	type_synth_expression type;
 	for (int i = 0; i < size_args; i++) {
-		type = (type_synth) va_arg(args, type_synth);
+		type = (type_synth_expression) va_arg(args, type_synth_expression);
 		if ($1 == type && $3 == type) {
 			found = 1;
 			break;
@@ -430,7 +554,7 @@ void fail_with(const char *format, ...) {
 	
 int main(void) {
 	
-	// Génère les instructions du début pour l'asm asipro avant l'analyse grammaticale
+	// Génère les statementuctions du début pour l'asm asipro avant l'analyse grammaticale
 	printf("; Généré sur bison\n\n");
 	
 	printf("; Permet de passer la zone de stockage des constantes\n");
@@ -474,11 +598,13 @@ int main(void) {
 	printf("; Résultat de bison\n");
 	yyparse();
 
-	// Génère les instructions de fin pour l'asm asipro avant l'analyse grammaticale
+	// Génère les statementuctions de fin pour l'asm asipro avant l'analyse grammaticale
+	/*
 	printf("; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile\n");
 	printf("\tcp ax,sp\n");
 	printf("\tcallprintfd ax\n");
 	printf("\tend\n");
+	*/
 	printf("\n");
 	
 	
@@ -492,12 +618,18 @@ int main(void) {
 	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	
 	
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Début de déclaration des variables\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	// L'initialisation des variables à zéro
 	// est ce qu'il faut faire l'intialisation des variables à la fin ?
 	for (symbol_table_entry *ste = symbol; ste != NULL; ste = ste->next) {
-		printf(":var:%s\n", symbol->name);
-		printf("@int 0\n\n");
+		printf(":var:%s\n", ste->name);
+		printf("@int 0\n");
 	}
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	printf("; Fin de déclaration des variables\n");
+	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	
 	
 	return EXIT_SUCCESS;
