@@ -1,6 +1,3 @@
-État 76 conflits: 1 décalage/réduction
-
-
 Grammaire
 
     0 $accept: lignes $end
@@ -76,40 +73,41 @@ Terminaux, suivis des règles où ils apparaissent
     ELSE (263) 16
     FOR (264) 19 20
     WHILE (265) 18
-    AND (266) 34
-    OR (267) 35
-    EQ (268) 32
-    NEQ (269) 33
-    GT (270) 36
-    LT (271) 37
+    "then" (266)
+    AND (267) 34
+    OR (268) 35
+    EQ (269) 32
+    NEQ (270) 33
+    GT (271) 36
+    LT (272) 37
 
 
 Non-terminaux, suivis des règles où ils apparaissent
 
-    $accept (28)
+    $accept (29)
         à gauche: 0
-    lignes (29)
+    lignes (30)
         à gauche: 1 2 3 4 5 6 7 8 9 10
         à droite: 0 1 4 5 7 8
-    statement_list (30)
+    statement_list (31)
         à gauche: 11 12
         à droite: 8 12
-    statement <state> (31)
+    statement <state> (32)
         à gauche: 13 14 15
         à droite: 11 12 16 17 18 19 20
-    selection_statement <selection_state> (32)
+    selection_statement <selection_state> (33)
         à gauche: 16 17
         à droite: 13
-    iteration_statement <iteration_state> (33)
+    iteration_statement <iteration_state> (34)
         à gauche: 18 19 20
         à droite: 14
-    expression_statement (34)
+    expression_statement (35)
         à gauche: 21 22
         à droite: 15 19 20
-    declaration <state> (35)
+    declaration <state> (36)
         à gauche: 23 24
         à droite: 7 9
-    expression <state> (36)
+    expression <state> (37)
         à gauche: 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
         à droite: 2 4 6 16 17 18 20 22 24 25 26 27 28 29 30 31 32 33 34 35 36 37
 
@@ -1195,24 +1193,7 @@ Non-terminaux, suivis des règles où ils apparaissent
 
     ELSE  décalage et aller à l'état 80
 
-    ELSE     [réduction par utilisation de la règle 17 (selection_statement)]
     $défaut  réduction par utilisation de la règle 17 (selection_statement)
-
-    conflit par décalage/réduction sur le jeton ELSE :
-       17 selection_statement: IF '(' expression ')' statement •
-       16 selection_statement: IF '(' expression ')' statement • ELSE statement
-      Exemple: IF '(' expression ')' IF '(' expression ')' statement • ELSE statement
-      Dérivation par décalage
-        selection_statement
-        ↳ 17: IF '(' expression ')' statement
-                                    ↳ 13: selection_statement
-                                          ↳ 16: IF '(' expression ')' statement • ELSE statement
-      Dérivation par réduction
-        selection_statement
-        ↳ 16: IF '(' expression ')' statement                                     ELSE statement
-                                    ↳ 13: selection_statement
-                                          ↳ 17: IF '(' expression ')' statement •
-
 
 
 État 77

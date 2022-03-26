@@ -76,6 +76,7 @@
 
 /* associativité à gauche et priorité des opérateurs (page 144 diaporama)*/
 /* EQ = EQUALS, NEQ = NOT EQUALS priorité plus faible */
+%right "then" ELSE
 %left AND OR
 %left EQ NEQ
 %left GT LT
@@ -108,7 +109,7 @@
 	selection_statement :
 		IF '(' expression ')' statement ELSE statement {
 			
-		} | IF '(' expression ')' statement {
+		} | IF '(' expression ')' statement %prec "then" {
 			/* expression doit etre booléen */
 			printf("if recognize\n");
 			if ($3 == T_BOOLEAN) {

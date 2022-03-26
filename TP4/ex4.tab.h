@@ -62,12 +62,12 @@ extern int yydebug;
     ELSE = 263,                    /* ELSE  */
     FOR = 264,                     /* FOR  */
     WHILE = 265,                   /* WHILE  */
-    AND = 266,                     /* AND  */
-    OR = 267,                      /* OR  */
-    EQ = 268,                      /* EQ  */
-    NEQ = 269,                     /* NEQ  */
-    GT = 270,                      /* GT  */
-    LT = 271                       /* LT  */
+    AND = 267,                     /* AND  */
+    OR = 268,                      /* OR  */
+    EQ = 269,                      /* EQ  */
+    NEQ = 270,                     /* NEQ  */
+    GT = 271,                      /* GT  */
+    LT = 272                       /* LT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

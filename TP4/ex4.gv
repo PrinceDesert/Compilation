@@ -460,8 +460,6 @@ digraph "ex4.y"
   75 -> 51 [style=dashed label="expression"]
   76 [label="État 76\n\l 16 selection_statement: IF '(' expression ')' statement • ELSE statement\l 17                    | IF '(' expression ')' statement •\l"]
   76 -> 80 [style=solid label="ELSE"]
-  76 -> "76R17d" [label="[ELSE]", style=solid]
- "76R17d" [label="R17", fillcolor=5, shape=diamond, style=filled]
   76 -> "76R17" [style=solid]
  "76R17" [label="R17", fillcolor=3, shape=diamond, style=filled]
   77 [label="État 77\n\l 19 iteration_statement: FOR '(' expression_statement expression_statement ')' • statement\l"]
