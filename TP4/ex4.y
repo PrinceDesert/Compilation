@@ -30,12 +30,10 @@
 	char lbl_s_errordiv[BUFFER_SIZE_MAX];
 	symbol_table_entry *symbol;
 	
-	/**
-		* utiliser la pile du tp2 stack_size
-	*/
-	#define STACK_CAPACITY 4096
-	static int stack[STACK_CAPACITY];
-	static size_t stack_size = 0;
+	
+	#define stack_if_CAPACITY 4096
+	static int stack_if[stack_if_CAPACITY];
+	static size_t stack_if_size = 0;
 	
 	
 	/**
@@ -91,42 +89,20 @@
 		lignes error '\n'		{ yyerrok; }
 		| expression error '\n'		{ yyerrok; }
 		| error '\n'			{ yyerrok; }
-		| lignes expression '\n'		{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
+		| lignes expression '\n'		{ /*printf("%d\n", stack_if[0]); stack_if_size = 0;*/ }
 		| lignes '\n'
-		| expression '\n'				{ /*printf("%d\n", stack[0]); stack_size = 0;*/ }
+		| expression '\n'				{ /*printf("%d\n", stack_if[0]); stack_if_size = 0;*/ }
 		| lignes declaration '\n'
-		| statement_list '\n'
+		| lignes statement_list '\n'
 		| declaration '\n'
 		| '\n'
 	;
 	
 	statement_list : statement | statement_list statement ;
-	statement :
-		IF '(' expression ')' statement {
-			/* expr doit etre booléen */
-			printf("if recognize\n");
-			if ($3 == T_BOOLEAN) {
-				// unsigned int ln = new_label_number();
-				stack[stack_size++] = new_label_number();
-				--stack_size;
-				
-				char lbl_if[BUFFER_SIZE_MAX];
-				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "if", ln);
-				
-				
-				printf("\tpop ax\n");
-				// si ax true alors fait le if
-				// sinon fait pas 
-				
-				$$ = T_BOOLEAN;
-			} else {
-				yyerror("[Erreur] IF expr pas booléen");
-				$$ = ERROR_TYPE;
-			}
-			
-		} | IF '(' expression ')' statement ELSE statement {
-			printf("ok\n");
-		}
+	statement 
+		: selection_statement 
+		| iteration_statement
+		| expression_statement
 	;
 	
 	selection_statement :
@@ -137,8 +113,8 @@
 			printf("if recognize\n");
 			if ($3 == T_BOOLEAN) {
 				unsigned int ln = new_label_number();
-				stack[stack_size++] = ln;
-				--stack_size;
+				stack_if[stack_if_size++] = ln;
+				--stack_if_size;
 				
 				char lbl_if[BUFFER_SIZE_MAX];
 				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "if", ln);

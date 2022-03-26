@@ -76,7 +76,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 55 "ex4.y"
+#line 53 "ex4.y"
 
 	int integer;
 	bool boolean;
