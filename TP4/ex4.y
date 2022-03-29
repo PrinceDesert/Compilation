@@ -603,6 +603,7 @@ int main(void) {
 	for (symbol_table_entry *ste = symbol; ste != NULL; ste = ste->next) {
 		printf(":var:%s\n", ste->name);
 		printf("@int 0\n");
+		free_first_symbol_table_entry();
 	}
 	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	printf("; Fin de déclaration des variables\n");
