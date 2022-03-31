@@ -16,9 +16,6 @@
 "/*"						{ comment(); }
 "//".*						{ /* consomme les commentaires commençant par // puis suivit de n'importe quel(s) caractère(s) */}
 
-
-[[:digit:]]+				{ string_to_int(&yylval.integer, yytext); return NUMBER; /* return NUMBER pour bison */ }
-
 "int"						{ yylval.stype = INT_T; return TYPE; }
 "bool"						{ yylval.stype = BOOL_T; return TYPE; }
 "void"						{ yylval.stype = VOID_T; return TYPE; }
@@ -59,6 +56,10 @@
 "|"							{ return '|'; }
 "?"							{ return '?'; }
 
+"print"						{ return PRINT; }
+"return"					{ return RETURN; }
+
+[[:digit:]]+				{ string_to_int(&yylval.integer, yytext); return NUMBER; /* return NUMBER pour bison */ }
 [a-zA-Z][a-zA-Z0-9]*		{ sprintf(yylval.id, "%s", yytext); return ID; }
 
 [[:blank:]]				{ /* fait rien sur espace*/ }

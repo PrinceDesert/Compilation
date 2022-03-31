@@ -62,12 +62,15 @@ extern int yydebug;
     ELSE = 263,                    /* ELSE  */
     FOR = 264,                     /* FOR  */
     WHILE = 265,                   /* WHILE  */
-    AND = 267,                     /* AND  */
-    OR = 268,                      /* OR  */
-    EQ = 269,                      /* EQ  */
-    NEQ = 270,                     /* NEQ  */
-    GT = 271,                      /* GT  */
-    LT = 272                       /* LT  */
+    PRINT = 266,                   /* PRINT  */
+    RETURN = 267,                  /* RETURN  */
+    THEN = 268,                    /* THEN  */
+    AND = 269,                     /* AND  */
+    OR = 270,                      /* OR  */
+    EQ = 271,                      /* EQ  */
+    NEQ = 272,                     /* NEQ  */
+    GT = 273,                      /* GT  */
+    LT = 274                       /* LT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -83,10 +86,8 @@ union YYSTYPE
 	type_synth_expression state; /* conserve pour les erreurs de typage */
 	char id[64]; /* nom de la variable */
 	symbol_type stype;
-	type_synth_expression selection_state;
-	type_synth_expression iteration_state;
 
-#line 90 "ex4.tab.h"
+#line 91 "ex4.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

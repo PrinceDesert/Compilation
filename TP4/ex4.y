@@ -56,27 +56,23 @@
 	type_synth_expression state; /* conserve pour les erreurs de typage */
 	char id[64]; /* nom de la variable */
 	symbol_type stype;
-	type_synth_expression selection_state;
-	type_synth_expression iteration_state;
 }
 
 %token<integer> NUMBER /* le integer est relié à l'union -> integer repéré par flex */
 %token<boolean> BOOLEAN /* le boolean est relié à l'union −> boolean repéré par flex  */
-%token<id> ID /* on les met en token car pas de on écrit pas de règle sur ce type */
+%token<id> ID /* met en token car pas de on écrit pas de règle sur ce type */
 %token<stype> TYPE
-
 %token IF ELSE FOR WHILE
+%token PRINT RETURN
 
 /* Tuto : pour utiliser le $$ comme dans expression, il faut le déclarer en tant que type */ 
 %type<state> expression /* le state est relié au champ de l'union state */
 %type<state> declaration
-%type<state> statement
-%type<selection_state> selection_statement
-%type<iteration_state> iteration_statement
+%type<state> statement selection_statement iteration_statement print_statement
 
 /* associativité à gauche et priorité des opérateurs (page 144 diaporama)*/
 /* EQ = EQUALS, NEQ = NOT EQUALS priorité plus faible */
-%right "then" ELSE
+%right THEN ELSE
 %left AND OR
 %left EQ NEQ
 %left GT LT
@@ -93,39 +89,58 @@
 		| lignes expression '\n'		{ /*printf("%d\n", stack_if[0]); stack_if_size = 0;*/ }
 		| lignes '\n'
 		| expression '\n'				{ /*printf("%d\n", stack_if[0]); stack_if_size = 0;*/ }
-		| lignes declaration '\n'
+		| lignes declaration_list '\n'
 		| lignes statement_list '\n'
-		| declaration '\n'
 		| '\n'
 	;
 	
 	statement_list : statement | statement_list statement ;
-	statement 
-		: selection_statement 
+	statement
+		: compound_statement
+		| selection_statement 
 		| iteration_statement
 		| expression_statement
+		| print_statement
+		| return_statement
 	;
 	
+	compound_statement
+		: '{' '}'
+		| '{' statement_list '}'
+		;
+		
 	selection_statement :
 		IF '(' expression ')' statement ELSE statement {
 			
-		} | IF '(' expression ')' statement %prec "then" {
-			/* expression doit etre booléen */
-			printf("if recognize\n");
+		} | IF '(' expression ')' statement %prec THEN {
 			if ($3 == T_BOOLEAN) {
+				
+				// J'ai pas compris la pile
 				unsigned int ln = new_label_number();
 				stack_if[stack_if_size++] = ln;
 				--stack_if_size;
 				
 				char lbl_if[BUFFER_SIZE_MAX];
 				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "if", ln);
+				char lbl_endif[BUFFER_SIZE_MAX];
+				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "endif", ln);
 				
-				
+				// Dépile le booléen de l'expression
 				printf("\tpop ax\n");
-				// si ax true alors fait le if
-				// sinon fait pas 
+				// Compare si la condition est vraie
+				printf("\tconst cx,%s\n", lbl_if);
+				printf("\tcmp ax,1\n");
+				printf("\tjmpc cx\n");
+				printf("\tconst cx,%s\n", lbl_endif);
+				printf("\tjmp cx\n");
 				
-				$$ = T_BOOLEAN;
+				printf(":%s\n", lbl_if);
+				// mettre code d'éxécution mais comment car le code est généré après ?
+				
+				printf(":%s\n", lbl_endif);
+				
+				// si ax true alors fait le if
+				// sinon fait pas
 			} else {
 				yyerror("[Erreur] IF expression pas booléen");
 				$$ = ERROR_TYPE;
@@ -135,9 +150,15 @@
 	;
 	
 	iteration_statement
-		: WHILE '(' expression ')' statement
-		| FOR '(' expression_statement expression_statement ')' statement
-		| FOR '(' expression_statement expression_statement expression ')' statement
+		: WHILE '(' expression ')' statement {
+			
+		}
+		| FOR '(' expression_statement expression_statement ')' statement {
+			
+		}
+		| FOR '(' expression_statement expression_statement expression ')' statement {
+			$$ = ERROR_TYPE;
+		}
 		;
 	
 	expression_statement 
@@ -145,7 +166,24 @@
 		| expression ';'
 		;
 	
+	print_statement
+		: PRINT '(' expression ')' ';' {
+			if ($3 == T_INT || $3 == T_BOOLEAN) {
+				printf("\tcallprintfd sp\n");
+				printf("\tpop\n");
+			}
+		}
+		;
 	
+	return_statement
+		: RETURN ';' {}
+		| RETURN expression ';' {}
+		;
+	
+	declaration_list
+		: declaration
+		| declaration_list declaration
+		;
 	
 	declaration :
 		TYPE ID ';' {
