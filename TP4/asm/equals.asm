@@ -13,9 +13,9 @@
 	const ax,2
 	sub sp,ax
 ; Résultat de bison
-	const ax,19
+	const ax,1
 	push ax
-	const ax,19
+	const ax,0
 	push ax
 	pop bx
 	pop ax

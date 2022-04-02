@@ -64,13 +64,12 @@ extern int yydebug;
     WHILE = 265,                   /* WHILE  */
     PRINT = 266,                   /* PRINT  */
     RETURN = 267,                  /* RETURN  */
-    THEN = 268,                    /* THEN  */
-    AND = 269,                     /* AND  */
-    OR = 270,                      /* OR  */
-    EQ = 271,                      /* EQ  */
-    NEQ = 272,                     /* NEQ  */
-    GT = 273,                      /* GT  */
-    LT = 274                       /* LT  */
+    AND = 268,                     /* AND  */
+    OR = 269,                      /* OR  */
+    EQ = 270,                      /* EQ  */
+    NEQ = 271,                     /* NEQ  */
+    GT = 272,                      /* GT  */
+    LT = 273                       /* LT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -79,7 +78,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 53 "ex4.y"
+#line 70 "ex4.y"
 
 	int integer;
 	bool boolean;
@@ -87,7 +86,7 @@ union YYSTYPE
 	char id[64]; /* nom de la variable */
 	symbol_type stype;
 
-#line 91 "ex4.tab.h"
+#line 90 "ex4.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

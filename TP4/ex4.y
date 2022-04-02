@@ -7,22 +7,23 @@
 	#include <string.h>
 	#include <math.h>
 	#include <limits.h>
-	#include "typesynth_expression.h"
-	#include "types.h"
-	#include "stable.h"
+	#include <typesynth_expression.h>
+	#include <types.h>
+	#include <stable.h>
+	
+	#define BUFFER_SIZE_MAX 256
 	
 	int yylex(void);
 	void yyerror(char const *);
 	
-	void get_symbol_from_type_synth_expression(symbol_type *symbol, type_synth_expression *tse);
-	// Check type
 	int is_same_type(size_t size_args, type_synth_expression $1, type_synth_expression $3, ...); /* $1 == T_BOOLEAN && $3 == T_BOOLEAN && value == T_BOOLEAN*/
-	// Label asm
 	static unsigned int new_label_number();
 	static void create_label(char *buf, size_t buf_size, const char *format, ...);
 	void fail_with(const char *format, ...);
+	void get_symbol_from_type_synth_expression(symbol_type *symbol, type_synth_expression *tse);
+	type_synth_expression *get_type_synth_expression_from_symbol(type_synth_expression *type, symbol_type *symbol);
 	
-	#define BUFFER_SIZE_MAX 256
+	
 	/**
 		Dans le code assembleur :
 		jmpc, le bit c est positionné (== 1), alors jumpc (écrit dans la doc de asm), pareil pour le bit z
@@ -32,8 +33,11 @@
 	
 	
 	#define stack_if_CAPACITY 4096
-	static int stack_if[stack_if_CAPACITY];
+	static size_t stack_if[stack_if_CAPACITY];
 	static size_t stack_if_size = 0;
+	
+	// Fichier assembleur
+	FILE *file;
 	
 	
 	/**
@@ -48,6 +52,19 @@
 	 * const bx,2
 	 * sub cx,bx -> permet de se retrouver sur l'argument de la pile
 	*/
+	
+	/**
+	Fonction :
+	
+	pile :
+	les arguments sur la pile
+	et les variables en arguments
+	
+	*/
+	
+	
+	
+	
 	
 %}
 %union {
@@ -65,6 +82,8 @@
 %token IF ELSE FOR WHILE
 %token PRINT RETURN
 
+
+
 /* Tuto : pour utiliser le $$ comme dans expression, il faut le déclarer en tant que type */ 
 %type<state> expression /* le state est relié au champ de l'union state */
 %type<state> declaration
@@ -72,7 +91,6 @@
 
 /* associativité à gauche et priorité des opérateurs (page 144 diaporama)*/
 /* EQ = EQUALS, NEQ = NOT EQUALS priorité plus faible */
-%right THEN ELSE
 %left AND OR
 %left EQ NEQ
 %left GT LT
@@ -80,74 +98,126 @@
 %left '*''/''%''^'
 
 /* lignes = axiome */
-%start lignes
+%start program
 %%
-	lignes :
+	/*lignes :
 		lignes error '\n'		{ yyerrok; }
 		| expression error '\n'		{ yyerrok; }
 		| error '\n'			{ yyerrok; }
-		| lignes expression '\n'		{ /*printf("%d\n", stack_if[0]); stack_if_size = 0;*/ }
+		| lignes expression '\n'		{  }
 		| lignes '\n'
-		| expression '\n'				{ /*printf("%d\n", stack_if[0]); stack_if_size = 0;*/ }
-		| lignes declaration_list '\n'
-		| lignes statement_list '\n'
+		| expression '\n'				{ }
+		| declaration_list '\n'
+		| statement_list '\n'
 		| '\n'
-	;
+	;*/
 	
-	statement_list : statement | statement_list statement ;
+	program
+		: declaration_list statement_list
+		;
+		
+	declaration_list 
+		: declaration_list declaration
+		| declaration
+		;
+	
+
+	
+	statement_list : statement_list statement | statement;
 	statement
 		: compound_statement
 		| selection_statement 
 		| iteration_statement
 		| expression_statement
 		| print_statement
-		| return_statement
+		| return_statement 
 	;
 	
 	compound_statement
 		: '{' '}'
 		| '{' statement_list '}'
+		| '{' declaration_list '}'
+		| '{' declaration_list statement_list '}'
 		;
 		
 	selection_statement :
-		IF '(' expression ')' statement ELSE statement {
-			
-		} | IF '(' expression ')' statement %prec THEN {
+		IF '(' expression ')' begin_if statement end_if else statement fi {
 			if ($3 == T_BOOLEAN) {
-				
-				// J'ai pas compris la pile
-				unsigned int ln = new_label_number();
-				stack_if[stack_if_size++] = ln;
-				--stack_if_size;
-				
-				char lbl_if[BUFFER_SIZE_MAX];
-				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "if", ln);
+				char lbl_beginif[BUFFER_SIZE_MAX];
+				create_label(lbl_beginif, BUFFER_SIZE_MAX, "%s:%u", "begin_if", stack_if[stack_if_size]);
 				char lbl_endif[BUFFER_SIZE_MAX];
-				create_label(lbl_if, BUFFER_SIZE_MAX, "%s:%u", "endif", ln);
+				create_label(lbl_endif, BUFFER_SIZE_MAX, "%s:%u", "end_if", stack_if[stack_if_size]);
 				
 				// Dépile le booléen de l'expression
-				printf("\tpop ax\n");
-				// Compare si la condition est vraie
-				printf("\tconst cx,%s\n", lbl_if);
-				printf("\tcmp ax,1\n");
-				printf("\tjmpc cx\n");
-				printf("\tconst cx,%s\n", lbl_endif);
-				printf("\tjmp cx\n");
+				fprintf(file, "DEMARRAGE\n");
+				fprintf(file, "\tpop ax\n");
 				
-				printf(":%s\n", lbl_if);
-				// mettre code d'éxécution mais comment car le code est généré après ?
+				// Compare si la condition est fausse, saut à la fin du if
 				
-				printf(":%s\n", lbl_endif);
+				fprintf(file, "\tconst cx,%s\n", lbl_endif);
+				fprintf(file, "\tcmp ax,0\n");
+				fprintf(file, "\tjmpc cx\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_beginif);
+				fprintf(file, "\tjmp cx\n");
 				
-				// si ax true alors fait le if
-				// sinon fait pas
+				fprintf(file, "\tjmp ax\n");
+				fprintf(file, ":%s\n", lbl_beginif);
+				fprintf(file, ":%s\n", lbl_endif);
+				
+				$$ = T_BOOLEAN;
+				
 			} else {
 				yyerror("[Erreur] IF expression pas booléen");
 				$$ = ERROR_TYPE;
 			}
-			
 		}
 	;
+	
+	else :
+		ELSE statement
+		| %empty
+		;
+	
+	begin_if : %empty {
+		unsigned int ln = new_label_number();
+		stack_if[stack_if_size++] = ln;
+		char lbl_else[BUFFER_SIZE_MAX];
+		create_label(lbl_else, BUFFER_SIZE_MAX, "%s:%u", "else", stack_if[stack_if_size]);
+		
+		// test la valeur de sp si faux saute à else:1
+		fprintf(file, "\tconst ax,sp\n");
+		fprintf(file, "\tconst bx,%s\n", lbl_else);
+		fprintf(file, "\tcmp ax,0\n");
+		fprintf(file, "\tjmpc ax\n");
+		
+	}
+	;
+	
+	end_if : %empty {
+		char lbl_fi[BUFFER_SIZE_MAX];
+		create_label(lbl_fi, BUFFER_SIZE_MAX, "%s:%u", "fi", stack_if[stack_if_size]);
+		char lbl_else[BUFFER_SIZE_MAX];
+		create_label(lbl_else, BUFFER_SIZE_MAX, "%s:%u", "else", stack_if[stack_if_size]);
+		
+		// saute fi:1
+		fprintf(file, "\tconst ax,%s\n", lbl_fi);
+		fprintf(file, "\tjmp ax\n");
+		// étiquette else:1
+		fprintf(file, ":%s\n", lbl_else);
+	}
+	;
+	
+	fi : %empty {
+		// fin de la condition
+		char lbl_fi[BUFFER_SIZE_MAX];
+		create_label(lbl_fi, BUFFER_SIZE_MAX, "%s:%u", "fi", stack_if[stack_if_size]);
+		fprintf(file, ":%s\n", lbl_fi);
+		
+		// Dépile le if sortie
+		stack_if[stack_if_size--] = 0;
+	}
+	;
+	
 	
 	iteration_statement
 		: WHILE '(' expression ')' statement {
@@ -161,16 +231,32 @@
 		}
 		;
 	
-	expression_statement 
+	expression_statement
 		: ';'
 		| expression ';'
+		| ID '=' expression ';' {
+			char varname[64];
+			sprintf(varname, "%s", $1);
+			symbol = search_symbol_table(varname);
+			if (symbol != NULL) {
+				char lbl_varname[BUFFER_SIZE_MAX];
+				create_label(lbl_varname, BUFFER_SIZE_MAX, "%s:%s", "var", varname);
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tconst bx,%s\n", lbl_varname);
+				fprintf(file, "\tstorew ax,bx\n");
+				fprintf(file, "\tpush ax\n");
+				// $$ = $3; 
+			} else {
+				fail_with("Erreur, la variable %s n'existe pas dans la table des symboles !\n", varname);
+			}
+		}
 		;
 	
 	print_statement
 		: PRINT '(' expression ')' ';' {
 			if ($3 == T_INT || $3 == T_BOOLEAN) {
-				printf("\tcallprintfd sp\n");
-				printf("\tpop\n");
+				fprintf(file, "\tcallprintfd sp\n");
+				fprintf(file, "\tpop\n");
 			}
 		}
 		;
@@ -179,20 +265,16 @@
 		: RETURN ';' {}
 		| RETURN expression ';' {}
 		;
-	
-	declaration_list
-		: declaration
-		| declaration_list declaration
-		;
+
 	
 	declaration :
 		TYPE ID ';' {
-			// printf("déclaration de la variable %s\n", $2);
+			// fprintf(file, "déclaration de la variable %s\n", $2);
 			// new_symbol_table_entry($2);
 			// vérifier si ça existe pas déja
 			// et on lui affecte un type
 			// on remplit la structure symbol_table_entry symbol_table_entry->DESC
-			// printf("type : %d - name : %s\n", $1, $2);
+			// fprintf(file, "type : %d - name : %s\n", $1, $2);
 			// $$ = T_BOOLEAN;
 			
 		} | TYPE ID '=' expression ';' {
@@ -202,7 +284,6 @@
 			type_synth_expression tse = $4;
 			symbol_type *s = malloc(sizeof(symbol_type));
 			get_symbol_from_type_synth_expression(s, &tse);
-			
 			if (COMPATIBLE_TYPES($1, *s)) {
 				char varname[64];
 				sprintf(varname, "%s", $2);
@@ -213,10 +294,10 @@
 					symbol->desc[0] = $1; // le type de la variable dans desc[0] comme c écrit dans types.h
 					char lbl_varname[BUFFER_SIZE_MAX];
 					create_label(lbl_varname, BUFFER_SIZE_MAX, "%s:%s", "var", varname);
-					printf("\tpop bx\n");
-					printf("\tconst bx,%s\n", lbl_varname); // est ce qu'il faut l'enregistrer dans une liste ?
-					printf("\tstorew ax,bx\n");
-					printf("\tpush ax\n");
+					fprintf(file, "\tpop bx\n");
+					fprintf(file, "\tconst bx,%s\n", lbl_varname); // est ce qu'il faut l'enregistrer dans une liste ?
+					fprintf(file, "\tstorew ax,bx\n");
+					fprintf(file, "\tpush ax\n");
 					$$ = $4;
 				} else {
 					fail_with("Erreur, la variable %s existe déja dans la table des symboles !\n", varname);
@@ -236,10 +317,10 @@
 		} | expression '+' expression {
 			/* $1 = expression, $2 = '+', $3 = expression */
 			if (is_same_type(1, $1, $3, T_INT)) {
-				printf("\tpop ax\n"); // dépile la pile dont la valeur est mise dans ax
-				printf("\tpop bx\n"); // dépile la pile dont la valeur est mise dans bx
-				printf("\tadd ax,bx\n"); // fait le plus de ax+bx que on met sur ax
-				printf("\tpush ax\n"); // push ax sur la pile qui a le nouveau résultat
+				fprintf(file, "\tpop ax\n"); // dépile la pile dont la valeur est mise dans ax
+				fprintf(file, "\tpop bx\n"); // dépile la pile dont la valeur est mise dans bx
+				fprintf(file, "\tadd ax,bx\n"); // fait le plus de ax+bx que on met sur ax
+				fprintf(file, "\tpush ax\n"); // push ax sur la pile qui a le nouveau résultat
 				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '+' de typage");
@@ -247,10 +328,10 @@
 			}
 		} | expression '-' expression {
 			if (is_same_type(1, $1, $3, T_INT)) {
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tsub ax,bx\n");
-				printf("\tpush ax\n");
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tsub ax,bx\n");
+				fprintf(file, "\tpush ax\n");
 				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '*' de typage");
@@ -259,10 +340,10 @@
 		} | expression '*' expression {
 			 /* Si $1 == ERROR || $3 == ERROR pas de multiplication */
 			if (is_same_type(1, $1, $3, T_INT)) {
-				printf("\tpop ax\n");
-				printf("\tpop bx\n");
-				printf("\tmul ax,bx\n");
-				printf("\tpush ax\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tmul ax,bx\n");
+				fprintf(file, "\tpush ax\n");
 				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '*' de typage");
@@ -277,19 +358,19 @@
 				unsigned int ln = new_label_number();
 				create_label(lbl_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "err", "div0", ln);
 				create_label(lbl_end_div, BUFFER_SIZE_MAX, "%s:%s:%u", "fin", "div", ln);
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tconst cx,%s\n", lbl_errordiv);
-				printf("\tdiv ax,bx\n");
-				printf("\tjmpe cx\n");
-				printf("\tpush ax\n");
-				printf("\tconst ax,%s\n", lbl_end_div);
-				printf("\tjmp ax\n");
-				printf(":%s\n", lbl_errordiv);
-				printf("\tconst ax,%s\n", lbl_s_errordiv);
-				printf("\tcallprintfs ax\n");
-				printf("\tend\n");
-				printf(":%s\n", lbl_end_div); // si pas d'erreur ça sort sur ce label qui fait rien
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_errordiv);
+				fprintf(file, "\tdiv ax,bx\n");
+				fprintf(file, "\tjmpe cx\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, "\tconst ax,%s\n", lbl_end_div);
+				fprintf(file, "\tjmp ax\n");
+				fprintf(file, ":%s\n", lbl_errordiv);
+				fprintf(file, "\tconst ax,%s\n", lbl_s_errordiv);
+				fprintf(file, "\tcallprintfs ax\n");
+				fprintf(file, "\tend\n");
+				fprintf(file, ":%s\n", lbl_end_div); // si pas d'erreur ça sort sur ce label qui fait rien
 				$$ = T_INT;
 			} else {
 				yyerror("[Erreur] '/' de typage");
@@ -303,28 +384,28 @@
 				unsigned int ln = new_label_number();
 				create_label(lbl_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "err", "div0", ln);
 				create_label(lbl_end_div, BUFFER_SIZE_MAX, "%s:%s:%u", "fin", "div", ln);
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tcp dx,ax\n");
-				printf("\tconst cx,%s\n", lbl_errordiv);
-				printf("\tdiv ax,bx\n");
-				printf("\tjmpe cx\n");
-				printf("\tcp cx,dx\n"); // copie dans cx de dx qui contient ax pour l'utiliser plustard
-				printf("\tcp dx,bx\n");
-				printf("\tpush ax\n");
-				printf("\tconst ax,%s\n", lbl_end_div);
-				printf("\tjmp ax\n");
-				printf(":%s\n", lbl_errordiv);
-				printf("\tconst ax,%s\n", lbl_s_errordiv);
-				printf("\tcallprintfs ax\n");
-				printf("\tend\n");
-				printf(":%s\n", lbl_end_div);
-				printf("\tpop ax\n");
-				printf("\tmul ax,dx\n");
-				printf("\tpush ax\n");
-				printf("\tpop ax\n");
-				printf("\tsub cx,ax\n");
-				printf("\tpush cx\n");
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tcp dx,ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_errordiv);
+				fprintf(file, "\tdiv ax,bx\n");
+				fprintf(file, "\tjmpe cx\n");
+				fprintf(file, "\tcp cx,dx\n"); // copie dans cx de dx qui contient ax pour l'utiliser plustard
+				fprintf(file, "\tcp dx,bx\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, "\tconst ax,%s\n", lbl_end_div);
+				fprintf(file, "\tjmp ax\n");
+				fprintf(file, ":%s\n", lbl_errordiv);
+				fprintf(file, "\tconst ax,%s\n", lbl_s_errordiv);
+				fprintf(file, "\tcallprintfs ax\n");
+				fprintf(file, "\tend\n");
+				fprintf(file, ":%s\n", lbl_end_div);
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tmul ax,dx\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tsub cx,ax\n");
+				fprintf(file, "\tpush cx\n");
 			} else {
 				yyerror("[Erreur] '%%' de typage");
 				$$ = ERROR_TYPE;
@@ -338,26 +419,25 @@
 			}
 		} | expression EQ expression {
 			if (is_same_type(2, $1, $3, T_INT, T_BOOLEAN)) {
-				
 				char lbl_eqtrue[BUFFER_SIZE_MAX];
 				char lbl_endeqtrue[BUFFER_SIZE_MAX];
 				unsigned int ln = new_label_number();
 				create_label(lbl_eqtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "eq", "true", ln);
 				create_label(lbl_endeqtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "endeq", "true", ln);
 				
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tconst cx,%s\n", lbl_eqtrue);
-				printf("\tcmp ax,bx\n");
-				printf("\tjmpc cx\n");
-				printf("\tconst ax,0\n");
-				printf("\tpush ax\n");
-				printf("\tconst cx,%s\n", lbl_endeqtrue);
-				printf("\tjmp cx\n");
-				printf(":%s\n", lbl_eqtrue);
-				printf("\tconst ax,1\n");
-				printf("\tpush ax\n");
-				printf(":%s\n", lbl_endeqtrue);
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_eqtrue);
+				fprintf(file, "\tcmp ax,bx\n");
+				fprintf(file, "\tjmpc cx\n");
+				fprintf(file, "\tconst ax,0\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_endeqtrue);
+				fprintf(file, "\tjmp cx\n");
+				fprintf(file, ":%s\n", lbl_eqtrue);
+				fprintf(file, "\tconst ax,1\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, ":%s\n", lbl_endeqtrue);
 				
 				$$ = T_BOOLEAN;
 			} else {
@@ -373,19 +453,19 @@
 				create_label(lbl_neqfalse, BUFFER_SIZE_MAX, "%s:%s:%u", "neq", "false", ln);
 				create_label(lbl_endneqfalse, BUFFER_SIZE_MAX, "%s:%s:%u", "endneq", "false", ln);
 				
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tconst cx,%s\n", lbl_neqfalse);
-				printf("\tcmp ax,bx\n");
-				printf("\tjmpc cx\n");
-				printf("\tconst ax,1\n");
-				printf("\tpush ax\n");
-				printf("\tconst cx,%s\n", lbl_endneqfalse);
-				printf("\tjmp cx\n");
-				printf(":%s\n", lbl_neqfalse);
-				printf("\tconst ax,0\n");
-				printf("\tpush ax\n");
-				printf(":%s\n", lbl_endneqfalse);
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_neqfalse);
+				fprintf(file, "\tcmp ax,bx\n");
+				fprintf(file, "\tjmpc cx\n");
+				fprintf(file, "\tconst ax,1\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_endneqfalse);
+				fprintf(file, "\tjmp cx\n");
+				fprintf(file, ":%s\n", lbl_neqfalse);
+				fprintf(file, "\tconst ax,0\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, ":%s\n", lbl_endneqfalse);
 				
 				$$ = T_BOOLEAN;
 			} else {
@@ -395,10 +475,10 @@
 		} | expression AND expression {
 			// example : true && true, true && false 
 			if (is_same_type(1, $1, $3, T_BOOLEAN)) {
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tand ax,bx\n");
-				printf("\tpush ax\n");
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tand ax,bx\n");
+				fprintf(file, "\tpush ax\n");
 				$$ = $1; // $1 = T_BOOLEAN
 			} else if ($1 != T_BOOLEAN) {
 				if ($1 == T_INT) {
@@ -416,10 +496,10 @@
 		} | expression OR expression {
 			// example : true || true, true || false
 			if (is_same_type(1, $1, $3, T_BOOLEAN)) {
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tor ax,bx\n");
-				printf("\tpush ax\n");
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tor ax,bx\n");
+				fprintf(file, "\tpush ax\n");
 				$$ = $1; // $1 = T_BOOLEAN
 			} else if ($1 != T_BOOLEAN) {
 				if ($1 == T_INT) {
@@ -441,19 +521,19 @@
 				unsigned int ln = new_label_number();
 				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%s:%u", "gt", "true", ln);
 				create_label(lbl_endtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "gt", "endtrue", ln);
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tconst cx,%s\n", lbl_true);
-				printf("\tsless bx,ax\n");
-				printf("\tjmpc cx\n");
-				printf("\tconst ax,0\n");
-				printf("\tpush ax\n");
-				printf("\tconst cx,%s\n", lbl_endtrue);
-				printf("\tjmp cx\n");
-				printf(":%s\n", lbl_true);
-				printf("\tconst ax,1\n");
-				printf("\tpush ax\n");
-				printf(":%s\n", lbl_endtrue);
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_true);
+				fprintf(file, "\tsless bx,ax\n");
+				fprintf(file, "\tjmpc cx\n");
+				fprintf(file, "\tconst ax,0\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_endtrue);
+				fprintf(file, "\tjmp cx\n");
+				fprintf(file, ":%s\n", lbl_true);
+				fprintf(file, "\tconst ax,1\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, ":%s\n", lbl_endtrue);
 				$$ = T_BOOLEAN; // remonte un booléan comme résultat
 			} else {
 				$$ = ERROR_TYPE;
@@ -465,32 +545,46 @@
 				unsigned int ln = new_label_number();
 				create_label(lbl_true, BUFFER_SIZE_MAX, "%s:%s:%u", "lt", "true", ln);
 				create_label(lbl_endtrue, BUFFER_SIZE_MAX, "%s:%s:%u", "lt", "endtrue", ln);
-				printf("\tpop bx\n");
-				printf("\tpop ax\n");
-				printf("\tconst cx,%s\n", lbl_true);
-				printf("\tsless ax,bx\n");
-				printf("\tjmpc cx\n");
-				printf("\tconst ax,0\n");
-				printf("\tpush ax\n");
-				printf("\tconst cx,%s\n", lbl_endtrue);
-				printf("\tjmp cx\n");
-				printf(":%s\n", lbl_true);
-				printf("\tconst ax,1\n");
-				printf("\tpush ax\n");
-				printf(":%s\n", lbl_endtrue);
+				fprintf(file, "\tpop bx\n");
+				fprintf(file, "\tpop ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_true);
+				fprintf(file, "\tsless ax,bx\n");
+				fprintf(file, "\tjmpc cx\n");
+				fprintf(file, "\tconst ax,0\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, "\tconst cx,%s\n", lbl_endtrue);
+				fprintf(file, "\tjmp cx\n");
+				fprintf(file, ":%s\n", lbl_true);
+				fprintf(file, "\tconst ax,1\n");
+				fprintf(file, "\tpush ax\n");
+				fprintf(file, ":%s\n", lbl_endtrue);
 				$$ = T_BOOLEAN;
 			} else {
 				$$ = ERROR_TYPE;
 			}
 		} | NUMBER {
 			// Affiche le code asm asipro correspondant
-			printf("\tconst ax,%d\n", $1); // met la valeur dans le registre ax
-			printf("\tpush ax\n"); // Push sur la pile, et donc ax n'est plus utilisé et peut pas besoin d'utiliser bx
+			fprintf(file, "\tconst ax,%d\n", $1); // met la valeur dans le registre ax
+			fprintf(file, "\tpush ax\n"); // Push sur la pile, et donc ax n'est plus utilisé et peut pas besoin d'utiliser bx
 			$$ = T_INT;
 		} | BOOLEAN {
-			printf("\tconst ax,%d\n", $1); // met la valeur dans le registre ax
-			printf("\tpush ax\n"); // Push sur la pile
+			fprintf(file, "\tconst ax,%d\n", $1); // met la valeur dans le registre ax
+			fprintf(file, "\tpush ax\n"); // Push sur la pile
 			$$ = T_BOOLEAN;
+		} | ID {
+			symbol_table_entry *ste;
+			if ((ste = search_symbol_table($1)) == NULL) {
+				yyerror("[Erreur] symbol inconnu");
+				$$ = ERROR_TYPE;
+			} else {
+				type_synth_expression *tse = malloc(sizeof(type_synth_expression));
+				if ((tse = get_type_synth_expression_from_symbol(tse, &ste->desc[0])) == NULL) {
+					yyerror("[Erreur] symbol non enregistré");
+					$$ = ERROR_TYPE;
+				}	
+				$$ = *tse;
+				free(tse);
+			}
 		}
 	;
 %%
@@ -510,6 +604,17 @@ void get_symbol_from_type_synth_expression(symbol_type *symbol, type_synth_expre
 	}
 }
 	
+type_synth_expression *get_type_synth_expression_from_symbol(type_synth_expression *type, symbol_type *symbol) {
+	if (symbol == NULL) return NULL;
+	if (type == NULL) return NULL;
+	if (*symbol == INT_T) {
+		*type = T_INT;
+	} else if (*symbol == BOOL_T) {
+		*type = T_BOOLEAN;
+	}
+	return type;
+}
+	
 int is_same_type(size_t size_args, type_synth_expression $1, type_synth_expression $3, ...) {
 	va_list args;
 	va_start(args, $3);
@@ -523,7 +628,7 @@ int is_same_type(size_t size_args, type_synth_expression $1, type_synth_expressi
 		}
 	}
 	va_end(args);
-	// printf("found %d\n", found);
+	// fprintf(file, "found %d\n", found);
 	return found;
 }
 	
@@ -568,85 +673,100 @@ void fail_with(const char *format, ...) {
 	
 	
 int main(void) {
+	const char *full_filename = "ex4.asm";
+	printf("==================================================================\n");
+	printf("== Code assembleur ASIPRO généré dans le fichier : %s\n", full_filename);
+	printf("== Dès lorsque l'analyse syntaxicale et grammaticale terminée, il faut utiliser ASIPRO et SIPRO pour l'éxécuter\n");
+	printf("==================================================================\n");
+	
+	// Ouverture du fichier d'assembleur pour y écrire le code assembleur
+	file = fopen(full_filename, "w");
+	if (file == NULL) {
+		perror("fopen");
+		exit(EXIT_FAILURE);
+	}
 	
 	// Génère les statementuctions du début pour l'asm asipro avant l'analyse grammaticale
-	printf("; Généré sur bison\n\n");
+	fprintf(file, "; Généré sur bison\n\n");
 	
-	printf("; Permet de passer la zone de stockage des constantes\n");
-	printf("\tconst ax,debut\n");
-	printf("\tjmp ax\n");
+	fprintf(file, "; Permet de passer la zone de stockage des constantes\n");
+	fprintf(file, "\tconst ax,debut\n");
+	fprintf(file, "\tjmp ax\n");
 	
 	// Déclarations des constantes (strings, int) qui peuvent être utiliser
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Début de la zone de stockage des constantes\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Début de la zone de stockage des constantes\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	
 	// String pour division par zéro
 	create_label(lbl_s_errordiv, BUFFER_SIZE_MAX, "%s:%s:%u", "s_err", "div0", new_label_number());
-	printf("\n");
-	printf(":%s\n", lbl_s_errordiv);
-	printf("@string \"Erreur de division par 0\\n\"\n");
-	printf("\n");
+	fprintf(file, "\n");
+	fprintf(file, ":%s\n", lbl_s_errordiv);
+	fprintf(file, "@string \"Erreur de division par 0\\n\"\n");
+	fprintf(file, "\n");
 	
 	
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Fin de la zone de stockage des constantes\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Fin de la zone de stockage des constantes\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n");
 	
 	/*
-	printf(";;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Début réel du code\n");
-	printf(";;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Début réel du code\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;\n");
 	*/
 	
-	printf(";;;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Fonction principale\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;\n");
-	printf(":debut\n");
-	printf("; Préparation de la pile\n");
-	printf("\tconst bp,pile\n"); // bp : fond de la pile
-	printf("\tconst sp,pile\n"); // sp : sommet de la pile
-	printf("\tconst ax,2\n");
-	printf("\tsub sp,ax\n"); // on fait la soustraction pour mettre le sommet de pile à - 2
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Fonction principale\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, ":debut\n");
+	fprintf(file, "; Préparation de la pile\n");
+	fprintf(file, "\tconst bp,pile\n"); // bp : fond de la pile
+	fprintf(file, "\tconst sp,pile\n"); // sp : sommet de la pile
+	fprintf(file, "\tconst ax,2\n");
+	fprintf(file, "\tsub sp,ax\n"); // on fait la soustraction pour mettre le sommet de pile à - 2
 	
 	// Analyse grammaticale
-	printf("; Résultat de bison\n");
+	fprintf(file, "; Codé généré à partir de bison\n");
 	yyparse();
 
 	// Génère les statementuctions de fin pour l'asm asipro avant l'analyse grammaticale
 	/*
-	printf("; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile\n");
-	printf("\tcp ax,sp\n");
-	printf("\tcallprintfd ax\n");
-	printf("\tend\n");
+	fprintf(file, "; Pour afficher la valeur calculée, qui se trouve normalement en sommet de pile\n");
+	fprintf(file, "\tcp ax,sp\n");
+	fprintf(file, "\tcallprintfd ax\n");
+	fprintf(file, "\tend\n");
 	*/
-	printf("\n");
+	fprintf(file, "\n");
 	
 	
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Début de stockage de la zone de pile\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	printf(":pile\n");
-	printf("@int 0\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Fin de stockage de la zone de pile\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Début de stockage de la zone de pile\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, ":pile\n");
+	fprintf(file, "@int 0\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Fin de stockage de la zone de pile\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	
 	
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Début de déclaration des variables\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	// L'initialisation des variables à zéro
-	// est ce qu'il faut faire l'intialisation des variables à la fin ?
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Début de déclaration des variables\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	// L'initialisation des variables initialisées à zéro
 	for (symbol_table_entry *ste = symbol; ste != NULL; ste = ste->next) {
-		printf(":var:%s\n", ste->name);
-		printf("@int 0\n");
+		fprintf(file, ":var:%s\n", ste->name);
+		fprintf(file, "@int 0\n");
 		free_first_symbol_table_entry();
 	}
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
-	printf("; Fin de déclaration des variables\n");
-	printf(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+	fprintf(file, "; Fin de déclaration des variables\n");
+	fprintf(file, ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
 	
+	if (fclose(file) == EOF) {
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
 	
 	return EXIT_SUCCESS;
 }

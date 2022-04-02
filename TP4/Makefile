@@ -9,8 +9,9 @@ LDFLAGS=-lfl -lm
 # --DYY_NO_INPUT: ne prend pas en compte la fonction input() inutile
 # -D_POSIX_SOURCE: déclare la fonction fileno()
 LEXOPTS=-D_POSIX_SOURCE -DYY_NO_INPUT --nounput
-YACCOPTS=-Wcounterexamples
+YACCOPTS=-Wcounterexamples -Wconflicts-sr
 
+INCDIR = inc
 PROG=ex4
 
 $(PROG): lex.yy.o $(PROG).tab.o stable.o
@@ -26,7 +27,7 @@ $(PROG).tab.c $(PROG).tab.h: $(PROG).y lex.yy.h
 	$(YACC) $(YACCOPTS) $< -d -v --graph
 
 %.o: %.c
-	$(CC) -DYYDEBUG $(CFLAGS) $< -c
+	$(CC) -DYYDEBUG $(CFLAGS) $< -c -I $(INCDIR)
 
 clean:
 	-rm $(PROG) *.o lex.yy.* $(PROG).tab.* *.err *.output *.out *.dot *.gv

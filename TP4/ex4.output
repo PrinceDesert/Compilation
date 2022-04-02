@@ -1,32 +1,37 @@
 Grammaire
 
-    0 $accept: lignes $end
+    0 $accept: program $end
 
-    1 lignes: lignes error '\n'
-    2       | expression error '\n'
-    3       | error '\n'
-    4       | lignes expression '\n'
-    5       | lignes '\n'
-    6       | expression '\n'
-    7       | lignes declaration_list '\n'
-    8       | lignes statement_list '\n'
-    9       | '\n'
+    1 program: declaration_list statement_list
 
-   10 statement_list: statement
-   11               | statement_list statement
+    2 declaration_list: declaration_list declaration
+    3                 | declaration
 
-   12 statement: compound_statement
-   13          | selection_statement
-   14          | iteration_statement
-   15          | expression_statement
-   16          | print_statement
-   17          | return_statement
+    4 statement_list: statement_list statement
+    5               | statement
 
-   18 compound_statement: '{' '}'
-   19                   | '{' statement_list '}'
+    6 statement: compound_statement
+    7          | selection_statement
+    8          | iteration_statement
+    9          | expression_statement
+   10          | print_statement
+   11          | return_statement
 
-   20 selection_statement: IF '(' expression ')' statement ELSE statement
-   21                    | IF '(' expression ')' statement
+   12 compound_statement: '{' '}'
+   13                   | '{' statement_list '}'
+   14                   | '{' declaration_list '}'
+   15                   | '{' declaration_list statement_list '}'
+
+   16 selection_statement: IF '(' expression ')' begin_if statement end_if else statement fi
+
+   17 else: ELSE statement
+   18     | ε
+
+   19 begin_if: ε
+
+   20 end_if: ε
+
+   21 fi: ε
 
    22 iteration_statement: WHILE '(' expression ')' statement
    23                    | FOR '(' expression_statement expression_statement ')' statement
@@ -34,1564 +39,1642 @@ Grammaire
 
    25 expression_statement: ';'
    26                     | expression ';'
+   27                     | ID '=' expression ';'
 
-   27 print_statement: PRINT '(' expression ')' ';'
+   28 print_statement: PRINT '(' expression ')' ';'
 
-   28 return_statement: RETURN ';'
-   29                 | RETURN expression ';'
+   29 return_statement: RETURN ';'
+   30                 | RETURN expression ';'
 
-   30 declaration_list: declaration
-   31                 | declaration_list declaration
+   31 declaration: TYPE ID ';'
+   32            | TYPE ID '=' expression ';'
 
-   32 declaration: TYPE ID ';'
-   33            | TYPE ID '=' expression ';'
-
-   34 expression: '(' expression ')'
-   35           | expression '+' expression
-   36           | expression '-' expression
-   37           | expression '*' expression
-   38           | expression '/' expression
-   39           | expression '%' expression
-   40           | expression '^' expression
-   41           | expression EQ expression
-   42           | expression NEQ expression
-   43           | expression AND expression
-   44           | expression OR expression
-   45           | expression GT expression
-   46           | expression LT expression
-   47           | NUMBER
-   48           | BOOLEAN
+   33 expression: '(' expression ')'
+   34           | expression '+' expression
+   35           | expression '-' expression
+   36           | expression '*' expression
+   37           | expression '/' expression
+   38           | expression '%' expression
+   39           | expression '^' expression
+   40           | expression EQ expression
+   41           | expression NEQ expression
+   42           | expression AND expression
+   43           | expression OR expression
+   44           | expression GT expression
+   45           | expression LT expression
+   46           | NUMBER
+   47           | BOOLEAN
+   48           | ID
 
 
 Terminaux, suivis des règles où ils apparaissent
 
     $end (0) 0
-    '\n' (10) 1 2 3 4 5 6 7 8 9
-    '%' (37) 39
-    '(' (40) 20 21 22 23 24 27 34
-    ')' (41) 20 21 22 23 24 27 34
-    '*' (42) 37
-    '+' (43) 35
-    '-' (45) 36
-    '/' (47) 38
-    ';' (59) 25 26 27 28 29 32 33
-    '=' (61) 33
-    '^' (94) 40
-    '{' (123) 18 19
-    '}' (125) 18 19
-    error (256) 1 2 3
-    NUMBER <integer> (258) 47
-    BOOLEAN <boolean> (259) 48
-    ID <id> (260) 32 33
-    TYPE <stype> (261) 32 33
-    IF (262) 20 21
-    ELSE (263) 20
+    '%' (37) 38
+    '(' (40) 16 22 23 24 28 33
+    ')' (41) 16 22 23 24 28 33
+    '*' (42) 36
+    '+' (43) 34
+    '-' (45) 35
+    '/' (47) 37
+    ';' (59) 25 26 27 28 29 30 31 32
+    '=' (61) 27 32
+    '^' (94) 39
+    '{' (123) 12 13 14 15
+    '}' (125) 12 13 14 15
+    error (256)
+    NUMBER <integer> (258) 46
+    BOOLEAN <boolean> (259) 47
+    ID <id> (260) 27 31 32 48
+    TYPE <stype> (261) 31 32
+    IF (262) 16
+    ELSE (263) 17
     FOR (264) 23 24
     WHILE (265) 22
-    PRINT (266) 27
-    RETURN (267) 28 29
-    THEN (268)
-    AND (269) 43
-    OR (270) 44
-    EQ (271) 41
-    NEQ (272) 42
-    GT (273) 45
-    LT (274) 46
+    PRINT (266) 28
+    RETURN (267) 29 30
+    AND (268) 42
+    OR (269) 43
+    EQ (270) 40
+    NEQ (271) 41
+    GT (272) 44
+    LT (273) 45
 
 
 Non-terminaux, suivis des règles où ils apparaissent
 
-    $accept (33)
+    $accept (31)
         à gauche: 0
-    lignes (34)
-        à gauche: 1 2 3 4 5 6 7 8 9
-        à droite: 0 1 4 5 7 8
-    statement_list (35)
-        à gauche: 10 11
-        à droite: 8 11 19
-    statement <state> (36)
-        à gauche: 12 13 14 15 16 17
-        à droite: 10 11 20 21 22 23 24
-    compound_statement (37)
-        à gauche: 18 19
-        à droite: 12
-    selection_statement <state> (38)
-        à gauche: 20 21
-        à droite: 13
-    iteration_statement <state> (39)
-        à gauche: 22 23 24
-        à droite: 14
-    expression_statement (40)
-        à gauche: 25 26
-        à droite: 15 23 24
-    print_statement <state> (41)
-        à gauche: 27
+    program (32)
+        à gauche: 1
+        à droite: 0
+    declaration_list (33)
+        à gauche: 2 3
+        à droite: 1 2 14 15
+    statement_list (34)
+        à gauche: 4 5
+        à droite: 1 4 13 15
+    statement <state> (35)
+        à gauche: 6 7 8 9 10 11
+        à droite: 4 5 16 17 22 23 24
+    compound_statement (36)
+        à gauche: 12 13 14 15
+        à droite: 6
+    selection_statement <state> (37)
+        à gauche: 16
+        à droite: 7
+    else (38)
+        à gauche: 17 18
         à droite: 16
-    return_statement (42)
-        à gauche: 28 29
-        à droite: 17
-    declaration_list (43)
-        à gauche: 30 31
-        à droite: 7 31
-    declaration <state> (44)
-        à gauche: 32 33
-        à droite: 30 31
-    expression <state> (45)
-        à gauche: 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
-        à droite: 2 4 6 20 21 22 24 26 27 29 33 34 35 36 37 38 39 40 41 42 43 44 45 46
+    begin_if (39)
+        à gauche: 19
+        à droite: 16
+    end_if (40)
+        à gauche: 20
+        à droite: 16
+    fi (41)
+        à gauche: 21
+        à droite: 16
+    iteration_statement <state> (42)
+        à gauche: 22 23 24
+        à droite: 8
+    expression_statement (43)
+        à gauche: 25 26 27
+        à droite: 9 23 24
+    print_statement <state> (44)
+        à gauche: 28
+        à droite: 10
+    return_statement (45)
+        à gauche: 29 30
+        à droite: 11
+    declaration <state> (46)
+        à gauche: 31 32
+        à droite: 2 3
+    expression <state> (47)
+        à gauche: 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+        à droite: 16 22 24 26 27 28 30 32 33 34 35 36 37 38 39 40 41 42 43 44 45
 
 
 État 0
 
-    0 $accept: • lignes $end
+    0 $accept: • program $end
 
-    error    décalage et aller à l'état 1
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '\n'     décalage et aller à l'état 4
-    '('      décalage et aller à l'état 5
+    TYPE  décalage et aller à l'état 1
 
-    lignes      aller à l'état 6
-    expression  aller à l'état 7
+    program           aller à l'état 2
+    declaration_list  aller à l'état 3
+    declaration       aller à l'état 4
 
 
 État 1
 
-    3 lignes: error • '\n'
+   31 declaration: TYPE • ID ';'
+   32            | TYPE • ID '=' expression ';'
 
-    '\n'  décalage et aller à l'état 8
+    ID  décalage et aller à l'état 5
 
 
 État 2
 
-   47 expression: NUMBER •
+    0 $accept: program • $end
 
-    $défaut  réduction par utilisation de la règle 47 (expression)
+    $end  décalage et aller à l'état 6
 
 
 État 3
 
-   48 expression: BOOLEAN •
+    1 program: declaration_list • statement_list
+    2 declaration_list: declaration_list • declaration
 
-    $défaut  réduction par utilisation de la règle 48 (expression)
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    TYPE     décalage et aller à l'état 1
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    statement_list        aller à l'état 18
+    statement             aller à l'état 19
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    declaration           aller à l'état 26
+    expression            aller à l'état 27
 
 
 État 4
 
-    9 lignes: '\n' •
+    3 declaration_list: declaration •
 
-    $défaut  réduction par utilisation de la règle 9 (lignes)
+    $défaut  réduction par utilisation de la règle 3 (declaration_list)
 
 
 État 5
 
-   34 expression: '(' • expression ')'
+   31 declaration: TYPE ID • ';'
+   32            | TYPE ID • '=' expression ';'
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 9
+    ';'  décalage et aller à l'état 28
+    '='  décalage et aller à l'état 29
 
 
 État 6
 
-    0 $accept: lignes • $end
-    1 lignes: lignes • error '\n'
-    4       | lignes • expression '\n'
-    5       | lignes • '\n'
-    7       | lignes • declaration_list '\n'
-    8       | lignes • statement_list '\n'
-
-    $end     décalage et aller à l'état 10
-    error    décalage et aller à l'état 11
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    TYPE     décalage et aller à l'état 12
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '\n'     décalage et aller à l'état 18
-    '{'      décalage et aller à l'état 19
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
-
-    statement_list        aller à l'état 21
-    statement             aller à l'état 22
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    declaration_list      aller à l'état 29
-    declaration           aller à l'état 30
-    expression            aller à l'état 31
-
-
-État 7
-
-    2 lignes: expression • error '\n'
-    6       | expression • '\n'
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    error  décalage et aller à l'état 32
-    AND    décalage et aller à l'état 33
-    OR     décalage et aller à l'état 34
-    EQ     décalage et aller à l'état 35
-    NEQ    décalage et aller à l'état 36
-    GT     décalage et aller à l'état 37
-    LT     décalage et aller à l'état 38
-    '+'    décalage et aller à l'état 39
-    '-'    décalage et aller à l'état 40
-    '*'    décalage et aller à l'état 41
-    '/'    décalage et aller à l'état 42
-    '%'    décalage et aller à l'état 43
-    '^'    décalage et aller à l'état 44
-    '\n'   décalage et aller à l'état 45
-
-
-État 8
-
-    3 lignes: error '\n' •
-
-    $défaut  réduction par utilisation de la règle 3 (lignes)
-
-
-État 9
-
-   34 expression: '(' expression • ')'
-   35           | expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ')'  décalage et aller à l'état 46
-
-
-État 10
-
-    0 $accept: lignes $end •
+    0 $accept: program $end •
 
     $défaut  accepter
 
 
+État 7
+
+   46 expression: NUMBER •
+
+    $défaut  réduction par utilisation de la règle 46 (expression)
+
+
+État 8
+
+   47 expression: BOOLEAN •
+
+    $défaut  réduction par utilisation de la règle 47 (expression)
+
+
+État 9
+
+   27 expression_statement: ID • '=' expression ';'
+   48 expression: ID •
+
+    '='  décalage et aller à l'état 30
+
+    $défaut  réduction par utilisation de la règle 48 (expression)
+
+
+État 10
+
+   16 selection_statement: IF • '(' expression ')' begin_if statement end_if else statement fi
+
+    '('  décalage et aller à l'état 31
+
+
 État 11
-
-    1 lignes: lignes error • '\n'
-
-    '\n'  décalage et aller à l'état 47
-
-
-État 12
-
-   32 declaration: TYPE • ID ';'
-   33            | TYPE • ID '=' expression ';'
-
-    ID  décalage et aller à l'état 48
-
-
-État 13
-
-   20 selection_statement: IF • '(' expression ')' statement ELSE statement
-   21                    | IF • '(' expression ')' statement
-
-    '('  décalage et aller à l'état 49
-
-
-État 14
 
    23 iteration_statement: FOR • '(' expression_statement expression_statement ')' statement
    24                    | FOR • '(' expression_statement expression_statement expression ')' statement
 
-    '('  décalage et aller à l'état 50
+    '('  décalage et aller à l'état 32
+
+
+État 12
+
+   22 iteration_statement: WHILE • '(' expression ')' statement
+
+    '('  décalage et aller à l'état 33
+
+
+État 13
+
+   28 print_statement: PRINT • '(' expression ')' ';'
+
+    '('  décalage et aller à l'état 34
+
+
+État 14
+
+   29 return_statement: RETURN • ';'
+   30                 | RETURN • expression ';'
+
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 36
+
+    expression  aller à l'état 37
 
 
 État 15
 
-   22 iteration_statement: WHILE • '(' expression ')' statement
+   12 compound_statement: '{' • '}'
+   13                   | '{' • statement_list '}'
+   14                   | '{' • declaration_list '}'
+   15                   | '{' • declaration_list statement_list '}'
 
-    '('  décalage et aller à l'état 51
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    TYPE     décalage et aller à l'état 1
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '}'      décalage et aller à l'état 38
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    declaration_list      aller à l'état 39
+    statement_list        aller à l'état 40
+    statement             aller à l'état 19
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    declaration           aller à l'état 4
+    expression            aller à l'état 27
 
 
 État 16
 
-   27 print_statement: PRINT • '(' expression ')' ';'
+   33 expression: '(' • expression ')'
 
-    '('  décalage et aller à l'état 52
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 41
 
 
 État 17
-
-   28 return_statement: RETURN • ';'
-   29                 | RETURN • expression ';'
-
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 53
-
-    expression  aller à l'état 54
-
-
-État 18
-
-    5 lignes: lignes '\n' •
-
-    $défaut  réduction par utilisation de la règle 5 (lignes)
-
-
-État 19
-
-   18 compound_statement: '{' • '}'
-   19                   | '{' • statement_list '}'
-
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '{'      décalage et aller à l'état 19
-    '}'      décalage et aller à l'état 55
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
-
-    statement_list        aller à l'état 56
-    statement             aller à l'état 22
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
-
-
-État 20
 
    25 expression_statement: ';' •
 
     $défaut  réduction par utilisation de la règle 25 (expression_statement)
 
 
+État 18
+
+    1 program: declaration_list statement_list •
+    4 statement_list: statement_list • statement
+
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    $défaut  réduction par utilisation de la règle 1 (program)
+
+    statement             aller à l'état 42
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
+
+
+État 19
+
+    5 statement_list: statement •
+
+    $défaut  réduction par utilisation de la règle 5 (statement_list)
+
+
+État 20
+
+    6 statement: compound_statement •
+
+    $défaut  réduction par utilisation de la règle 6 (statement)
+
+
 État 21
 
-    8 lignes: lignes statement_list • '\n'
-   11 statement_list: statement_list • statement
+    7 statement: selection_statement •
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '\n'     décalage et aller à l'état 58
-    '{'      décalage et aller à l'état 19
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
-
-    statement             aller à l'état 59
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
+    $défaut  réduction par utilisation de la règle 7 (statement)
 
 
 État 22
 
-   10 statement_list: statement •
+    8 statement: iteration_statement •
 
-    $défaut  réduction par utilisation de la règle 10 (statement_list)
+    $défaut  réduction par utilisation de la règle 8 (statement)
 
 
 État 23
 
-   12 statement: compound_statement •
+    9 statement: expression_statement •
 
-    $défaut  réduction par utilisation de la règle 12 (statement)
+    $défaut  réduction par utilisation de la règle 9 (statement)
 
 
 État 24
 
-   13 statement: selection_statement •
+   10 statement: print_statement •
 
-    $défaut  réduction par utilisation de la règle 13 (statement)
+    $défaut  réduction par utilisation de la règle 10 (statement)
 
 
 État 25
 
-   14 statement: iteration_statement •
+   11 statement: return_statement •
 
-    $défaut  réduction par utilisation de la règle 14 (statement)
+    $défaut  réduction par utilisation de la règle 11 (statement)
 
 
 État 26
 
-   15 statement: expression_statement •
+    2 declaration_list: declaration_list declaration •
 
-    $défaut  réduction par utilisation de la règle 15 (statement)
+    $défaut  réduction par utilisation de la règle 2 (declaration_list)
 
 
 État 27
 
-   16 statement: print_statement •
+   26 expression_statement: expression • ';'
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
 
-    $défaut  réduction par utilisation de la règle 16 (statement)
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ';'  décalage et aller à l'état 55
 
 
 État 28
 
-   17 statement: return_statement •
+   31 declaration: TYPE ID ';' •
 
-    $défaut  réduction par utilisation de la règle 17 (statement)
+    $défaut  réduction par utilisation de la règle 31 (declaration)
 
 
 État 29
 
-    7 lignes: lignes declaration_list • '\n'
-   31 declaration_list: declaration_list • declaration
+   32 declaration: TYPE ID '=' • expression ';'
 
-    TYPE  décalage et aller à l'état 12
-    '\n'  décalage et aller à l'état 60
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    declaration  aller à l'état 61
+    expression  aller à l'état 56
 
 
 État 30
 
-   30 declaration_list: declaration •
+   27 expression_statement: ID '=' • expression ';'
 
-    $défaut  réduction par utilisation de la règle 30 (declaration_list)
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 57
 
 
 État 31
 
-    4 lignes: lignes expression • '\n'
-   26 expression_statement: expression • ';'
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
+   16 selection_statement: IF '(' • expression ')' begin_if statement end_if else statement fi
 
-    AND   décalage et aller à l'état 33
-    OR    décalage et aller à l'état 34
-    EQ    décalage et aller à l'état 35
-    NEQ   décalage et aller à l'état 36
-    GT    décalage et aller à l'état 37
-    LT    décalage et aller à l'état 38
-    '+'   décalage et aller à l'état 39
-    '-'   décalage et aller à l'état 40
-    '*'   décalage et aller à l'état 41
-    '/'   décalage et aller à l'état 42
-    '%'   décalage et aller à l'état 43
-    '^'   décalage et aller à l'état 44
-    '\n'  décalage et aller à l'état 62
-    ';'   décalage et aller à l'état 63
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 58
 
 
 État 32
 
-    2 lignes: expression error • '\n'
+   23 iteration_statement: FOR '(' • expression_statement expression_statement ')' statement
+   24                    | FOR '(' • expression_statement expression_statement expression ')' statement
 
-    '\n'  décalage et aller à l'état 64
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    expression_statement  aller à l'état 59
+    expression            aller à l'état 27
 
 
 État 33
 
-   43 expression: expression AND • expression
+   22 iteration_statement: WHILE '(' • expression ')' statement
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression  aller à l'état 65
+    expression  aller à l'état 60
 
 
 État 34
 
-   44 expression: expression OR • expression
+   28 print_statement: PRINT '(' • expression ')' ';'
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression  aller à l'état 66
+    expression  aller à l'état 61
 
 
 État 35
 
-   41 expression: expression EQ • expression
+   48 expression: ID •
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 67
+    $défaut  réduction par utilisation de la règle 48 (expression)
 
 
 État 36
 
-   42 expression: expression NEQ • expression
+   29 return_statement: RETURN ';' •
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 68
+    $défaut  réduction par utilisation de la règle 29 (return_statement)
 
 
 État 37
 
-   45 expression: expression GT • expression
+   30 return_statement: RETURN expression • ';'
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 69
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ';'  décalage et aller à l'état 62
 
 
 État 38
 
-   46 expression: expression LT • expression
+   12 compound_statement: '{' '}' •
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 70
+    $défaut  réduction par utilisation de la règle 12 (compound_statement)
 
 
 État 39
 
-   35 expression: expression '+' • expression
+    2 declaration_list: declaration_list • declaration
+   14 compound_statement: '{' declaration_list • '}'
+   15                   | '{' declaration_list • statement_list '}'
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    TYPE     décalage et aller à l'état 1
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '}'      décalage et aller à l'état 63
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
 
-    expression  aller à l'état 71
+    statement_list        aller à l'état 64
+    statement             aller à l'état 19
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    declaration           aller à l'état 26
+    expression            aller à l'état 27
 
 
 État 40
 
-   36 expression: expression '-' • expression
+    4 statement_list: statement_list • statement
+   13 compound_statement: '{' statement_list • '}'
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '}'      décalage et aller à l'état 65
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
 
-    expression  aller à l'état 72
+    statement             aller à l'état 42
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
 
 
 État 41
 
-   37 expression: expression '*' • expression
+   33 expression: '(' expression • ')'
+   34           | expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 73
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ')'  décalage et aller à l'état 66
 
 
 État 42
 
-   38 expression: expression '/' • expression
+    4 statement_list: statement_list statement •
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 74
+    $défaut  réduction par utilisation de la règle 4 (statement_list)
 
 
 État 43
 
-   39 expression: expression '%' • expression
+   42 expression: expression AND • expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression  aller à l'état 75
+    expression  aller à l'état 67
 
 
 État 44
 
-   40 expression: expression '^' • expression
+   43 expression: expression OR • expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression  aller à l'état 76
+    expression  aller à l'état 68
 
 
 État 45
 
-    6 lignes: expression '\n' •
+   40 expression: expression EQ • expression
 
-    $défaut  réduction par utilisation de la règle 6 (lignes)
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 69
 
 
 État 46
 
-   34 expression: '(' expression ')' •
+   41 expression: expression NEQ • expression
 
-    $défaut  réduction par utilisation de la règle 34 (expression)
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 70
 
 
 État 47
 
-    1 lignes: lignes error '\n' •
+   44 expression: expression GT • expression
 
-    $défaut  réduction par utilisation de la règle 1 (lignes)
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 71
 
 
 État 48
 
-   32 declaration: TYPE ID • ';'
-   33            | TYPE ID • '=' expression ';'
+   45 expression: expression LT • expression
 
-    ';'  décalage et aller à l'état 77
-    '='  décalage et aller à l'état 78
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 72
 
 
 État 49
 
-   20 selection_statement: IF '(' • expression ')' statement ELSE statement
-   21                    | IF '(' • expression ')' statement
+   34 expression: expression '+' • expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression  aller à l'état 79
+    expression  aller à l'état 73
 
 
 État 50
 
-   23 iteration_statement: FOR '(' • expression_statement expression_statement ')' statement
-   24                    | FOR '(' • expression_statement expression_statement expression ')' statement
+   35 expression: expression '-' • expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression_statement  aller à l'état 80
-    expression            aller à l'état 57
+    expression  aller à l'état 74
 
 
 État 51
 
-   22 iteration_statement: WHILE '(' • expression ')' statement
+   36 expression: expression '*' • expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression  aller à l'état 81
+    expression  aller à l'état 75
 
 
 État 52
 
-   27 print_statement: PRINT '(' • expression ')' ';'
+   37 expression: expression '/' • expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
 
-    expression  aller à l'état 82
+    expression  aller à l'état 76
 
 
 État 53
 
-   28 return_statement: RETURN ';' •
+   38 expression: expression '%' • expression
 
-    $défaut  réduction par utilisation de la règle 28 (return_statement)
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 77
 
 
 État 54
 
-   29 return_statement: RETURN expression • ';'
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
+   39 expression: expression '^' • expression
 
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ';'  décalage et aller à l'état 83
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+
+    expression  aller à l'état 78
 
 
 État 55
-
-   18 compound_statement: '{' '}' •
-
-    $défaut  réduction par utilisation de la règle 18 (compound_statement)
-
-
-État 56
-
-   11 statement_list: statement_list • statement
-   19 compound_statement: '{' statement_list • '}'
-
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '{'      décalage et aller à l'état 19
-    '}'      décalage et aller à l'état 84
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
-
-    statement             aller à l'état 59
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
-
-
-État 57
-
-   26 expression_statement: expression • ';'
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ';'  décalage et aller à l'état 63
-
-
-État 58
-
-    8 lignes: lignes statement_list '\n' •
-
-    $défaut  réduction par utilisation de la règle 8 (lignes)
-
-
-État 59
-
-   11 statement_list: statement_list statement •
-
-    $défaut  réduction par utilisation de la règle 11 (statement_list)
-
-
-État 60
-
-    7 lignes: lignes declaration_list '\n' •
-
-    $défaut  réduction par utilisation de la règle 7 (lignes)
-
-
-État 61
-
-   31 declaration_list: declaration_list declaration •
-
-    $défaut  réduction par utilisation de la règle 31 (declaration_list)
-
-
-État 62
-
-    4 lignes: lignes expression '\n' •
-
-    $défaut  réduction par utilisation de la règle 4 (lignes)
-
-
-État 63
 
    26 expression_statement: expression ';' •
 
     $défaut  réduction par utilisation de la règle 26 (expression_statement)
 
 
-État 64
-
-    2 lignes: expression error '\n' •
-
-    $défaut  réduction par utilisation de la règle 2 (lignes)
-
-
-État 65
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   43           | expression AND expression •
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 43 (expression)
-
-
-État 66
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   44           | expression OR expression •
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 44 (expression)
-
-
-État 67
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   41           | expression EQ expression •
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 41 (expression)
-
-
-État 68
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   42           | expression NEQ expression •
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 42 (expression)
-
-
-État 69
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   45           | expression GT expression •
-   46           | expression • LT expression
-
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 45 (expression)
-
-
-État 70
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-   46           | expression LT expression •
-
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 46 (expression)
-
-
-État 71
-
-   35 expression: expression • '+' expression
-   35           | expression '+' expression •
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 35 (expression)
-
-
-État 72
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   36           | expression '-' expression •
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-
-    $défaut  réduction par utilisation de la règle 36 (expression)
-
-
-État 73
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   37           | expression '*' expression •
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    $défaut  réduction par utilisation de la règle 37 (expression)
-
-
-État 74
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   38           | expression '/' expression •
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    $défaut  réduction par utilisation de la règle 38 (expression)
-
-
-État 75
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   39           | expression '%' expression •
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    $défaut  réduction par utilisation de la règle 39 (expression)
-
-
-État 76
-
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   40           | expression '^' expression •
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    $défaut  réduction par utilisation de la règle 40 (expression)
-
-
-État 77
-
-   32 declaration: TYPE ID ';' •
-
-    $défaut  réduction par utilisation de la règle 32 (declaration)
-
-
-État 78
-
-   33 declaration: TYPE ID '=' • expression ';'
-
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-
-    expression  aller à l'état 85
-
-
-État 79
-
-   20 selection_statement: IF '(' expression • ')' statement ELSE statement
-   21                    | IF '(' expression • ')' statement
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ')'  décalage et aller à l'état 86
-
-
-État 80
+État 56
+
+   32 declaration: TYPE ID '=' expression • ';'
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ';'  décalage et aller à l'état 79
+
+
+État 57
+
+   27 expression_statement: ID '=' expression • ';'
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ';'  décalage et aller à l'état 80
+
+
+État 58
+
+   16 selection_statement: IF '(' expression • ')' begin_if statement end_if else statement fi
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ')'  décalage et aller à l'état 81
+
+
+État 59
 
    23 iteration_statement: FOR '(' expression_statement • expression_statement ')' statement
    24                    | FOR '(' expression_statement • expression_statement expression ')' statement
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
 
-    expression_statement  aller à l'état 87
-    expression            aller à l'état 57
+    expression_statement  aller à l'état 82
+    expression            aller à l'état 27
+
+
+État 60
+
+   22 iteration_statement: WHILE '(' expression • ')' statement
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ')'  décalage et aller à l'état 83
+
+
+État 61
+
+   28 print_statement: PRINT '(' expression • ')' ';'
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ')'  décalage et aller à l'état 84
+
+
+État 62
+
+   30 return_statement: RETURN expression ';' •
+
+    $défaut  réduction par utilisation de la règle 30 (return_statement)
+
+
+État 63
+
+   14 compound_statement: '{' declaration_list '}' •
+
+    $défaut  réduction par utilisation de la règle 14 (compound_statement)
+
+
+État 64
+
+    4 statement_list: statement_list • statement
+   15 compound_statement: '{' declaration_list statement_list • '}'
+
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '}'      décalage et aller à l'état 85
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    statement             aller à l'état 42
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
+
+
+État 65
+
+   13 compound_statement: '{' statement_list '}' •
+
+    $défaut  réduction par utilisation de la règle 13 (compound_statement)
+
+
+État 66
+
+   33 expression: '(' expression ')' •
+
+    $défaut  réduction par utilisation de la règle 33 (expression)
+
+
+État 67
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   42           | expression AND expression •
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 42 (expression)
+
+
+État 68
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   43           | expression OR expression •
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 43 (expression)
+
+
+État 69
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   40           | expression EQ expression •
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 40 (expression)
+
+
+État 70
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   41           | expression NEQ expression •
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 41 (expression)
+
+
+État 71
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   44           | expression GT expression •
+   45           | expression • LT expression
+
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 44 (expression)
+
+
+État 72
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+   45           | expression LT expression •
+
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 45 (expression)
+
+
+État 73
+
+   34 expression: expression • '+' expression
+   34           | expression '+' expression •
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 34 (expression)
+
+
+État 74
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   35           | expression '-' expression •
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+
+    $défaut  réduction par utilisation de la règle 35 (expression)
+
+
+État 75
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   36           | expression '*' expression •
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    $défaut  réduction par utilisation de la règle 36 (expression)
+
+
+État 76
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   37           | expression '/' expression •
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    $défaut  réduction par utilisation de la règle 37 (expression)
+
+
+État 77
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   38           | expression '%' expression •
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    $défaut  réduction par utilisation de la règle 38 (expression)
+
+
+État 78
+
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   39           | expression '^' expression •
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
+
+    $défaut  réduction par utilisation de la règle 39 (expression)
+
+
+État 79
+
+   32 declaration: TYPE ID '=' expression ';' •
+
+    $défaut  réduction par utilisation de la règle 32 (declaration)
+
+
+État 80
+
+   27 expression_statement: ID '=' expression ';' •
+
+    $défaut  réduction par utilisation de la règle 27 (expression_statement)
 
 
 État 81
 
-   22 iteration_statement: WHILE '(' expression • ')' statement
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
+   16 selection_statement: IF '(' expression ')' • begin_if statement end_if else statement fi
 
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ')'  décalage et aller à l'état 88
+    $défaut  réduction par utilisation de la règle 19 (begin_if)
+
+    begin_if  aller à l'état 86
 
 
 État 82
 
-   27 print_statement: PRINT '(' expression • ')' ';'
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
+   23 iteration_statement: FOR '(' expression_statement expression_statement • ')' statement
+   24                    | FOR '(' expression_statement expression_statement • expression ')' statement
 
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ')'  décalage et aller à l'état 89
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 35
+    '('      décalage et aller à l'état 16
+    ')'      décalage et aller à l'état 87
+
+    expression  aller à l'état 88
 
 
 État 83
 
-   29 return_statement: RETURN expression ';' •
+   22 iteration_statement: WHILE '(' expression ')' • statement
 
-    $défaut  réduction par utilisation de la règle 29 (return_statement)
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    statement             aller à l'état 89
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
 
 
 État 84
 
-   19 compound_statement: '{' statement_list '}' •
+   28 print_statement: PRINT '(' expression ')' • ';'
 
-    $défaut  réduction par utilisation de la règle 19 (compound_statement)
+    ';'  décalage et aller à l'état 90
 
 
 État 85
 
-   33 declaration: TYPE ID '=' expression • ';'
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
+   15 compound_statement: '{' declaration_list statement_list '}' •
 
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ';'  décalage et aller à l'état 90
+    $défaut  réduction par utilisation de la règle 15 (compound_statement)
 
 
 État 86
 
-   20 selection_statement: IF '(' expression ')' • statement ELSE statement
-   21                    | IF '(' expression ')' • statement
+   16 selection_statement: IF '(' expression ')' begin_if • statement end_if else statement fi
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '{'      décalage et aller à l'état 19
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
 
     statement             aller à l'état 91
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
 
 
 État 87
 
-   23 iteration_statement: FOR '(' expression_statement expression_statement • ')' statement
-   24                    | FOR '(' expression_statement expression_statement • expression ')' statement
+   23 iteration_statement: FOR '(' expression_statement expression_statement ')' • statement
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    '('      décalage et aller à l'état 5
-    ')'      décalage et aller à l'état 92
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
 
-    expression  aller à l'état 93
+    statement             aller à l'état 92
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
 
 
 État 88
 
-   22 iteration_statement: WHILE '(' expression ')' • statement
+   24 iteration_statement: FOR '(' expression_statement expression_statement expression • ')' statement
+   34 expression: expression • '+' expression
+   35           | expression • '-' expression
+   36           | expression • '*' expression
+   37           | expression • '/' expression
+   38           | expression • '%' expression
+   39           | expression • '^' expression
+   40           | expression • EQ expression
+   41           | expression • NEQ expression
+   42           | expression • AND expression
+   43           | expression • OR expression
+   44           | expression • GT expression
+   45           | expression • LT expression
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '{'      décalage et aller à l'état 19
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
-
-    statement             aller à l'état 94
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
+    AND  décalage et aller à l'état 43
+    OR   décalage et aller à l'état 44
+    EQ   décalage et aller à l'état 45
+    NEQ  décalage et aller à l'état 46
+    GT   décalage et aller à l'état 47
+    LT   décalage et aller à l'état 48
+    '+'  décalage et aller à l'état 49
+    '-'  décalage et aller à l'état 50
+    '*'  décalage et aller à l'état 51
+    '/'  décalage et aller à l'état 52
+    '%'  décalage et aller à l'état 53
+    '^'  décalage et aller à l'état 54
+    ')'  décalage et aller à l'état 93
 
 
 État 89
-
-   27 print_statement: PRINT '(' expression ')' • ';'
-
-    ';'  décalage et aller à l'état 95
-
-
-État 90
-
-   33 declaration: TYPE ID '=' expression ';' •
-
-    $défaut  réduction par utilisation de la règle 33 (declaration)
-
-
-État 91
-
-   20 selection_statement: IF '(' expression ')' statement • ELSE statement
-   21                    | IF '(' expression ')' statement •
-
-    ELSE  décalage et aller à l'état 96
-
-    $défaut  réduction par utilisation de la règle 21 (selection_statement)
-
-
-État 92
-
-   23 iteration_statement: FOR '(' expression_statement expression_statement ')' • statement
-
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '{'      décalage et aller à l'état 19
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
-
-    statement             aller à l'état 97
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
-
-
-État 93
-
-   24 iteration_statement: FOR '(' expression_statement expression_statement expression • ')' statement
-   35 expression: expression • '+' expression
-   36           | expression • '-' expression
-   37           | expression • '*' expression
-   38           | expression • '/' expression
-   39           | expression • '%' expression
-   40           | expression • '^' expression
-   41           | expression • EQ expression
-   42           | expression • NEQ expression
-   43           | expression • AND expression
-   44           | expression • OR expression
-   45           | expression • GT expression
-   46           | expression • LT expression
-
-    AND  décalage et aller à l'état 33
-    OR   décalage et aller à l'état 34
-    EQ   décalage et aller à l'état 35
-    NEQ  décalage et aller à l'état 36
-    GT   décalage et aller à l'état 37
-    LT   décalage et aller à l'état 38
-    '+'  décalage et aller à l'état 39
-    '-'  décalage et aller à l'état 40
-    '*'  décalage et aller à l'état 41
-    '/'  décalage et aller à l'état 42
-    '%'  décalage et aller à l'état 43
-    '^'  décalage et aller à l'état 44
-    ')'  décalage et aller à l'état 98
-
-
-État 94
 
    22 iteration_statement: WHILE '(' expression ')' statement •
 
     $défaut  réduction par utilisation de la règle 22 (iteration_statement)
 
 
-État 95
+État 90
 
-   27 print_statement: PRINT '(' expression ')' ';' •
+   28 print_statement: PRINT '(' expression ')' ';' •
 
-    $défaut  réduction par utilisation de la règle 27 (print_statement)
-
-
-État 96
-
-   20 selection_statement: IF '(' expression ')' statement ELSE • statement
-
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '{'      décalage et aller à l'état 19
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
-
-    statement             aller à l'état 99
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
+    $défaut  réduction par utilisation de la règle 28 (print_statement)
 
 
-État 97
+État 91
+
+   16 selection_statement: IF '(' expression ')' begin_if statement • end_if else statement fi
+
+    $défaut  réduction par utilisation de la règle 20 (end_if)
+
+    end_if  aller à l'état 94
+
+
+État 92
 
    23 iteration_statement: FOR '(' expression_statement expression_statement ')' statement •
 
     $défaut  réduction par utilisation de la règle 23 (iteration_statement)
 
 
-État 98
+État 93
 
    24 iteration_statement: FOR '(' expression_statement expression_statement expression ')' • statement
 
-    NUMBER   décalage et aller à l'état 2
-    BOOLEAN  décalage et aller à l'état 3
-    IF       décalage et aller à l'état 13
-    FOR      décalage et aller à l'état 14
-    WHILE    décalage et aller à l'état 15
-    PRINT    décalage et aller à l'état 16
-    RETURN   décalage et aller à l'état 17
-    '{'      décalage et aller à l'état 19
-    '('      décalage et aller à l'état 5
-    ';'      décalage et aller à l'état 20
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
 
-    statement             aller à l'état 100
-    compound_statement    aller à l'état 23
-    selection_statement   aller à l'état 24
-    iteration_statement   aller à l'état 25
-    expression_statement  aller à l'état 26
-    print_statement       aller à l'état 27
-    return_statement      aller à l'état 28
-    expression            aller à l'état 57
-
-
-État 99
-
-   20 selection_statement: IF '(' expression ')' statement ELSE statement •
-
-    $défaut  réduction par utilisation de la règle 20 (selection_statement)
+    statement             aller à l'état 95
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
 
 
-État 100
+État 94
+
+   16 selection_statement: IF '(' expression ')' begin_if statement end_if • else statement fi
+
+    ELSE  décalage et aller à l'état 96
+
+    $défaut  réduction par utilisation de la règle 18 (else)
+
+    else  aller à l'état 97
+
+
+État 95
 
    24 iteration_statement: FOR '(' expression_statement expression_statement expression ')' statement •
 
     $défaut  réduction par utilisation de la règle 24 (iteration_statement)
+
+
+État 96
+
+   17 else: ELSE • statement
+
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    statement             aller à l'état 98
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
+
+
+État 97
+
+   16 selection_statement: IF '(' expression ')' begin_if statement end_if else • statement fi
+
+    NUMBER   décalage et aller à l'état 7
+    BOOLEAN  décalage et aller à l'état 8
+    ID       décalage et aller à l'état 9
+    IF       décalage et aller à l'état 10
+    FOR      décalage et aller à l'état 11
+    WHILE    décalage et aller à l'état 12
+    PRINT    décalage et aller à l'état 13
+    RETURN   décalage et aller à l'état 14
+    '{'      décalage et aller à l'état 15
+    '('      décalage et aller à l'état 16
+    ';'      décalage et aller à l'état 17
+
+    statement             aller à l'état 99
+    compound_statement    aller à l'état 20
+    selection_statement   aller à l'état 21
+    iteration_statement   aller à l'état 22
+    expression_statement  aller à l'état 23
+    print_statement       aller à l'état 24
+    return_statement      aller à l'état 25
+    expression            aller à l'état 27
+
+
+État 98
+
+   17 else: ELSE statement •
+
+    $défaut  réduction par utilisation de la règle 17 (else)
+
+
+État 99
+
+   16 selection_statement: IF '(' expression ')' begin_if statement end_if else statement • fi
+
+    $défaut  réduction par utilisation de la règle 21 (fi)
+
+    fi  aller à l'état 100
+
+
+État 100
+
+   16 selection_statement: IF '(' expression ')' begin_if statement end_if else statement fi •
+
+    $défaut  réduction par utilisation de la règle 16 (selection_statement)

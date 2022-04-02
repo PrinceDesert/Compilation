@@ -2,8 +2,8 @@
 	#include <stdio.h>
 	#include <limits.h>
 	#include <stdbool.h>
-	#include "typesynth_expression.h"
-	#include "types.h"
+	#include <typesynth_expression.h>
+	#include <types.h>
 	#include "ex4.tab.h"
 	static void comment(); // commentaire
 	void string_to_int(int *v, const char *s);
@@ -36,6 +36,7 @@
 "<"							{ return LT; }
 ";"							{ return ';'; }
 ("{"|"<%")					{ return '{'; }
+("}"|"%>")					{ return '}'; }
 ","							{ return ','; }
 ":"							{ return ':'; }
 "="							{ return '='; }
@@ -62,7 +63,7 @@
 [[:digit:]]+				{ string_to_int(&yylval.integer, yytext); return NUMBER; /* return NUMBER pour bison */ }
 [a-zA-Z][a-zA-Z0-9]*		{ sprintf(yylval.id, "%s", yytext); return ID; }
 
-[[:blank:]]				{ /* fait rien sur espace*/ }
+[[:blank:]]				{ }
 [\t\v\f] 				{ }
 \n						{ numlign++; return yytext[0]; }
 .						{ fprintf(stderr, "Erreur, lexique inconnu à la ligne %lu -> %s (taille : %d)\n", numlign, yytext, yyleng); return yytext[0]; }
